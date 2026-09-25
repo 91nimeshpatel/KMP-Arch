@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "kmp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Kotlin Multiplatform working standards: how to add a feature, change a dependency, capture an intent and write a spec, plus a verifier that runs both apps and hooks that keep the documents honest.",
   "author": {
     "name": "mrlonewolfer"
