@@ -43,6 +43,37 @@ To turn it on for everyone who clones a repository, add it to that repository's 
 reports what it actually saw. Its verdict is worth having precisely because it did not write the
 code.
 
+### `adopt-standards` — the files a plugin cannot carry
+
+A plugin can hold skills, agents and hooks. It **cannot** hold `CLAUDE.md`, `.claude/rules/` or
+`.github/workflows/` — those are read by Claude Code and by GitHub, not by the plugin system. So the
+plugin bundles them under `kmp/project/` and the `adopt-standards` skill installs them:
+
+| Installed | What it is |
+|---|---|
+| `CLAUDE.md` | the shared contract, ending in `@.claude/project.md` |
+| `.claude/rules/**` | five path-scoped rules that load when you open a matching file |
+| `architecture-tests/**` | the executable rules — layering, locale parity, documented dependencies and seams |
+| `.github/workflows/**` | `ci`, `release`, `release-cut`, `hotfix` |
+| `.github/CODEOWNERS`, PR template, branch ruleset | review and merge policy |
+| `tools/` | the module-graph generator and the branch-protection script |
+| `REVIEW.md` | what a review looks for |
+
+It lists what it will change and **stops before writing**, honours a `.standards-ignore`, and writes
+`.claude/project.md` only if it is missing.
+
+### Who owns what
+
+| Owner | Files | Rule |
+|---|---|---|
+| The plugin | everything in the table above | replaced on update — never edit them in a project |
+| The project | `.claude/project.md`, and everything else | never touched |
+
+A project that needs a shared file to be different records the exception in `.claude/project.md`
+with the reason, rather than editing the file. An edited upstream file is overwritten on the next
+update and the reason goes with it. **The same exception in two projects means the shared file is
+wrong** — fix it here.
+
 ### Hooks — enforcement, not advice
 
 | Hook | Fires |
@@ -60,9 +91,6 @@ without lecturing.
 shipping nothing, because it would be confidently wrong. What ships instead is the *shape*: the
 recipe in `kmp/reference/ADDING_A_FEATURE.md`, and the entry format in
 `kmp/reference/library-entry-format.md`.
-
-**Path-scoped rules.** The `.claude/rules/` files a project keeps are not a plugin component, so
-they stay with each project for now.
 
 **Anything unproven against a second project.** The build conventions and the architecture rules are
 still in [KMP-Template](https://github.com/mrlonewolfer/KMP-Template). They move here when a second
