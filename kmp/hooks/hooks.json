@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/catalog-changed.py",
+            "timeout": 15,
+            "statusMessage": "Checking the library playbook"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/docs-gate.py",
+            "timeout": 20,
+            "statusMessage": "Checking the documents against the code"
+          }
+        ]
+      }
+    ]
+  }
+}
