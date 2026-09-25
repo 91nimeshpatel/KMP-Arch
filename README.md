@@ -56,7 +56,7 @@ plugin bundles them under `kmp/project/` and the `adopt-standards` skill install
 | `architecture-tests/**` | the executable rules — layering, locale parity, documented dependencies and seams |
 | `.github/workflows/**` | `ci`, `release`, `release-cut`, `hotfix` |
 | `.github/CODEOWNERS`, PR template, branch ruleset | review and merge policy |
-| `tools/` | the module-graph generator and the branch-protection script |
+| `tools/` | **`new-feature.py`** — scaffolds a feature module, wired up and passing the gate; plus the module-graph generator and the branch-protection script |
 | `REVIEW.md` | what a review looks for |
 
 It lists what it will change and **stops before writing**, honours a `.standards-ignore`, and writes

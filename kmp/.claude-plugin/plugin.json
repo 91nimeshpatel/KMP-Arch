@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "kmp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Kotlin Multiplatform working standards: skills for adding a feature, changing a dependency, capturing an intent and writing a spec; a verifier subagent; hooks that keep the documents honest; and the shared CLAUDE.md, path-scoped rules, CI and release workflows and executable architecture rules, installed by adopt-standards.",
   "author": {
     "name": "mrlonewolfer"

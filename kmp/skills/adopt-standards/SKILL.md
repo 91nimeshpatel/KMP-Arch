@@ -21,7 +21,7 @@ them there only deliberately, and say so.
 
 | Owner | Files | Rule |
 |---|---|---|
-| **The plugin** | `CLAUDE.md`, `.claude/rules/**`, `.github/**`, `REVIEW.md`, `architecture-tests/**`, `tools/module-graph.py`, `tools/apply-branch-protection.sh` | replaced on every update — never edit them in the project |
+| **The plugin** | `CLAUDE.md`, `.claude/rules/**`, `.github/**`, `REVIEW.md`, `architecture-tests/**`, `tools/**` | replaced on every update — never edit them in the project |
 | **The project** | `.claude/project.md`, everything else | written once if missing, then never touched again |
 
 A project that needs a shared file to be different does **not** edit it. It records the exception in
