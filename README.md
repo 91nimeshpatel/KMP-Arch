@@ -80,9 +80,15 @@ wrong** — fix it here.
 |---|---|
 | `catalog-changed` | after an edit to `gradle/libs.versions.toml`, naming versions missing from `docs/LIBRARIES.md` |
 | `docs-gate` | when a turn tries to finish while a document contradicts the code |
+| `session-start` | when a session opens in a Gradle project that has not adopted the standards, or has lost some of them |
 
-Both are quiet in a project that does not keep those files, so the plugin can be installed anywhere
-without lecturing.
+All three are quiet where they do not apply — outside a Gradle project, or in one that keeps no
+library playbook — so the plugin can be installed anywhere without lecturing.
+
+`session-start` is what makes adoption close to automatic: install the plugin once, and every
+project you open afterwards is checked. It **writes nothing**. Files appearing in a repository
+because someone opened an editor is a bad surprise, and the difference between a helpful default and
+an unwelcome one is whether they were asked. It reports; `adopt-standards` acts.
 
 ## What is deliberately not here
 
