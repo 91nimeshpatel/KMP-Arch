@@ -42,6 +42,22 @@ jobs:
           echo "::warning::secret with read access to it. Until then, run this before a release:"
           echo "::warning::    tools/sync-from-template.sh --check"
 
+      - name: Versions agree across the three files that carry one
+        run: tools/check-versions.sh
+
+      - name: The npm package contains what the plugin needs
+        # `files` in package.json is an allowlist. Forget an entry and the package publishes
+        # happily, missing a skill or the whole project/ tree, and nobody finds out until someone
+        # installs it.
+        run: |
+          cd kmp && npm pack --pack-destination /tmp >/dev/null
+          mkdir -p /tmp/unpacked && tar -xzf /tmp/*.tgz -C /tmp/unpacked
+          for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
+                   hooks/session-start.py project/CLAUDE.md project/tools/new-feature.py; do
+            test -f "/tmp/unpacked/package/$f" || { echo "::error::missing from the package: $f"; exit 1; }
+          done
+          echo "packed $(find /tmp/unpacked/package -type f | wc -l) files"
+
       - name: Manifests are valid JSON
         run: |
           python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"

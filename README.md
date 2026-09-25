@@ -8,6 +8,19 @@ reusable CI workflows are intended to follow, once there is a second project to 
 
 ## Install
 
+**From npm — no GitHub account, no access to this repository, nothing to be invited to.**
+
+```bash
+claude plugin marketplace add https://unpkg.com/@mrlonewolfer/kmp-standards/.claude-plugin/marketplace.json
+claude plugin install kmp@kmp-standards
+```
+
+The npm package is both the plugin and its own catalogue: `.claude-plugin/plugin.json` makes it a
+plugin, `.claude-plugin/marketplace.json` lists it, and unpkg serves either over HTTPS. One package,
+one registry, nothing else to host.
+
+**From this repository**, if you have access to it:
+
 ```bash
 claude plugin marketplace add mrlonewolfer/KMP-Standards
 claude plugin install kmp@kmp-standards
@@ -117,6 +130,19 @@ CI runs `--check` against a fresh checkout of the template — **when it can rea
 is a private repository and this one's `GITHUB_TOKEN` does not reach it, so that step is currently
 skipped with a warning rather than failing. To turn it on, either make the template public or add a
 `TEMPLATE_READ_TOKEN` secret with read access to it. Until then, run `--check` before a release.
+
+## Publishing
+
+```bash
+tools/sync-from-template.sh          # refresh the bundled files
+tools/check-versions.sh              # the three files that carry a version must agree
+cd kmp && npm publish                # publishConfig already sets --access public
+```
+
+The version lives in `kmp/.claude-plugin/plugin.json`, `kmp/package.json` and the `^range` in
+`kmp/.claude-plugin/marketplace.json`. All three must move together, which is why there is a script
+for it: a mismatch is silent, and npm will happily serve one version while Claude Code believes it
+has another.
 
 ## Versioning
 

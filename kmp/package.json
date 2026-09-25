@@ -1,0 +1,25 @@
+{
+  "name": "@mrlonewolfer/kmp-standards",
+  "version": "0.6.0",
+  "description": "Kotlin Multiplatform engineering standards for Claude Code: skills for adding a feature, changing a dependency, capturing an intent and writing a spec; a verifier subagent; hooks that keep the documents honest; and the shared CLAUDE.md, rules, CI workflows and executable architecture rules.",
+  "keywords": ["claude-code", "claude-code-plugin", "kotlin-multiplatform", "kmp", "android", "ios"],
+  "license": "MIT",
+  "author": "mrlonewolfer",
+  "homepage": "https://github.com/mrlonewolfer/KMP-Standards",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrlonewolfer/KMP-Standards.git",
+    "directory": "kmp"
+  },
+  "files": [
+    ".claude-plugin",
+    "skills",
+    "agents",
+    "hooks",
+    "reference",
+    "project"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}
