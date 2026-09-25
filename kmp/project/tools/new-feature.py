@@ -63,6 +63,8 @@ compose.resources {{
  *
  * One immutable value, so the screen is a function of it and nothing else. Add what the screen
  * needs; never add anything only the ViewModel cares about.
+ *
+ * @property isLoading whether to show progress. Replace this with what the screen actually shows.
  */
 data class {cls}UiState(
     val isLoading: Boolean = false,

@@ -54,9 +54,16 @@ jobs:
           # Reject anything that is not x.y.z, so a mistyped tag fails here rather than shipping.
           echo "$NAME" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
             echo "::error::'$NAME' is not a semantic version. Tag releases as v1.4.0."; exit 1; }
+          # versionCode is computed from the version, not from the run number. A run number resets
+          # if a workflow file is renamed, and every store requires this to increase forever — so
+          # it is derived from something that only ever goes up.
+          #   1.4.0 -> 1*1000000 + 4*10000 + 0*100 + 99 = 1040099
+          # The trailing 99 leaves room below it for release candidates, should they ever be added.
+          IFS=. read -r MAJOR MINOR PATCH <<< "$NAME"
+          CODE=$(( MAJOR * 1000000 + MINOR * 10000 + PATCH * 100 + 99 ))
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "code=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
-          echo "Building $NAME (versionCode ${{ github.run_number }})"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Building $NAME (versionCode $CODE)"
 
       - name: Build the release APK
         run: |
