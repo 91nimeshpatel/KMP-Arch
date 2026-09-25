@@ -107,8 +107,10 @@ tools/sync-from-template.sh              # refresh from ../KMP Template
 tools/sync-from-template.sh --check      # fail if anything is stale
 ```
 
-CI runs `--check` against a fresh checkout of the template, so a stale bundle fails a pull request
-instead of quietly shipping last month's rules to every project.
+CI runs `--check` against a fresh checkout of the template — **when it can reach it.** The template
+is a private repository and this one's `GITHUB_TOKEN` does not reach it, so that step is currently
+skipped with a warning rather than failing. To turn it on, either make the template public or add a
+`TEMPLATE_READ_TOKEN` secret with read access to it. Until then, run `--check` before a release.
 
 ## Versioning
 

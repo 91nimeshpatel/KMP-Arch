@@ -18,13 +18,29 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Check out the template beside it
+        id: template
+        # KMP-Template is private, and this repository's GITHUB_TOKEN only reaches this repository,
+        # so the checkout 404s. That is an access problem, not a broken check — so the step is
+        # allowed to fail and the staleness check skips rather than turning the whole build red for
+        # a reason nobody can act on from here.
+        continue-on-error: true
         uses: actions/checkout@v7
         with:
           repository: mrlonewolfer/KMP-Template
           path: kmp-template
+          token: ${{ secrets.TEMPLATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: The bundled files match the template
+        if: steps.template.outcome == 'success'
         run: tools/sync-from-template.sh --check kmp-template
+
+      - name: Staleness check skipped
+        if: steps.template.outcome != 'success'
+        run: |
+          echo "::warning::Could not read mrlonewolfer/KMP-Template, so the bundled files were not"
+          echo "::warning::checked for staleness. Make the template public, or add a TEMPLATE_READ_TOKEN"
+          echo "::warning::secret with read access to it. Until then, run this before a release:"
+          echo "::warning::    tools/sync-from-template.sh --check"
 
       - name: Manifests are valid JSON
         run: |
