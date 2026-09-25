@@ -28,6 +28,12 @@ review.
 - **Design tokens only.** No `Color(0x...)`, no `.dp` literal, no font size in a feature. Read
   `MaterialTheme.*` or `AppTheme.*`. Primitives are `internal` to `:core:designsystem`.
 - **Right-to-left by construction.** `start`/`end`, never `left`/`right`.
+- **Copy the worked example, do not remember it.** Before writing a screen, a ViewModel or a screen
+  test, open `feature/welcome` and read the equivalent file. Imports and APIs move — `AppTheme` is
+  under `.theme`, screen tests use `compose.ui.test.v2.runComposeUiTest` — and a remembered import
+  is a guess. This is not a style preference: the code generator in `tools/new-feature.py` was
+  written from memory and was wrong three ways, each of which was already answered in the file it
+  should have been reading.
 - **Every public declaration has KDoc** saying what it is for and, where it is not obvious, why it
   is built this way. Comments explain *why*; the code already says *what*. An `actual` inherits
   the `expect`'s KDoc, so it only documents what is specific to that platform — but it does

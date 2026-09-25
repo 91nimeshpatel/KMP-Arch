@@ -96,10 +96,26 @@ recipe in `kmp/reference/ADDING_A_FEATURE.md`, and the entry format in
 still in [KMP-Template](https://github.com/mrlonewolfer/KMP-Template). They move here when a second
 project has shown what they need to do for two consumers rather than one.
 
+## Keeping the bundle honest
+
+The files under `kmp/project/` are copies of files that live, and are actually exercised by a build,
+in [KMP-Template](https://github.com/mrlonewolfer/KMP-Template). A copy drifts — this one was stale
+within an hour of being made — so it is refreshed by a script rather than by hand:
+
+```bash
+tools/sync-from-template.sh              # refresh from ../KMP Template
+tools/sync-from-template.sh --check      # fail if anything is stale
+```
+
+CI runs `--check` against a fresh checkout of the template, so a stale bundle fails a pull request
+instead of quietly shipping last month's rules to every project.
+
 ## Versioning
 
-`kmp/.claude-plugin/plugin.json` pins the version. Claude Code keeps everyone on the cached copy
-until that string changes, so a release is a version bump and a tag.
+`kmp/.claude-plugin/plugin.json` pins the version, and Claude Code keeps everyone on the cached copy
+until that string changes. **A fix without a version bump reaches nobody** — that is not a figure of
+speech; it happened here, and `claude plugin update` reported "already at the latest version" while
+serving the broken copy. A release is a sync, a version bump and a push.
 
 ## Related
 

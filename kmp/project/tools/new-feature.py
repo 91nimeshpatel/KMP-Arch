@@ -193,11 +193,91 @@ class {cls}ViewModelTest {{
 ''',
     }
 
+    # A screen test drives the real composable, which is what a ViewModel test structurally cannot
+    # do: prove the state reaches the screen and that the tags the E2E suite relies on exist.
+    out[f"feature/{name}/src/commonTest/kotlin/{fpkg.replace('.', '/')}/{cls}ScreenSpec.kt"] = f'''package {fpkg}
+
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.v2.runComposeUiTest
+import kotlin.test.Test
+import kotlin.test.assertTrue
+
+/**
+ * Screen-level tests for [{cls}Screen].
+ *
+ * The screen is stateless, so a test hands it a [{cls}UiState] and a lambda — no ViewModel, no
+ * dependency injection, no device. That is the payoff of splitting `Route` from `Screen`.
+ *
+ * Abstract, and run by a per-platform subclass, so nothing runs twice and nothing runs without a
+ * platform opting in. See the existing features for why only iOS has a runner today.
+ */
+@OptIn(ExperimentalTestApi::class)
+abstract class {cls}ScreenSpec {{
+    @Test
+    fun `renders the state it is given`() =
+        runComposeUiTest {{
+            setContent {{ {cls}Screen(uiState = {cls}UiState(), onEvent = {{}}) }}
+
+            // The tag the Appium suite looks for. Asserting it here means a rename breaks a fast
+            // unit test instead of a slow emulator run.
+            onNodeWithTag("{name}_screen").assertIsDisplayed()
+        }}
+
+    @Test
+    fun `reports that it was shown`() =
+        runComposeUiTest {{
+            var shown = false
+            setContent {{
+                {cls}Screen(
+                    uiState = {cls}UiState(),
+                    onEvent = {{ if (it is {cls}Event.Shown) shown = true }},
+                )
+            }}
+            waitForIdle()
+
+            assertTrue(shown, "the screen should report Shown when it appears")
+        }}
+}}
+'''
+
     for folder in locales():
         out[f"feature/{name}/src/commonMain/composeResources/{folder}/strings.xml"] = (
             '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n'
             f'    <string name="{name}_title">{cls}</string>\n</resources>\n'
         )
+    out[f"tools/e2e/pages/{name}.py"] = f'''"""The {name} screen."""
+
+from __future__ import annotations
+
+from .base import Page
+
+
+class {cls}Page(Page):
+    root_tag = "{name}_screen"
+'''
+
+    out[f"tools/e2e/tests/test_{name}.py"] = f'''"""End-to-end checks for the {name} screen.
+
+These run against a real build on a real device. They find elements by test tag, never by
+coordinates or translated text, so they survive a redesign and a new locale.
+"""
+
+from __future__ import annotations
+
+from pages.{name} import {cls}Page
+
+
+def test_the_{name}_screen_opens(driver):
+    """The screen is reachable and draws.
+
+    Replace this with a journey once the screen does something: reach it the way a person would,
+    rather than asserting it exists.
+    """
+    {cls}Page(driver).assert_open()
+'''
+
     return out
 
 
@@ -274,7 +354,11 @@ Next:
      runtime, so a missing binding is a crash on this screen, not a compile error.
   2. Add a destination for it in the navigator, if it is a top-level screen.
   3. Translate {name}_title in every values-* folder. It is currently the English word everywhere.
-  4. ./gradlew qualityCheck allTests
+  4. Add a per-platform runner for {cls}ScreenSpec next to the existing features' runners, or the
+     screen tests will not execute anywhere.
+  5. The E2E test only checks the screen draws. Make it a journey: reach the screen the way a
+     person would.
+  6. ./gradlew qualityCheck allTests
 """)
     return 0
 

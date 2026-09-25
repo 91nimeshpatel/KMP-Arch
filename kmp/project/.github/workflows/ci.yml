@@ -94,6 +94,14 @@ jobs:
           check_name: Unit tests
           detailed_summary: true
 
+      - name: The scaffolder still produces a feature that passes
+        # tools/new-feature.py writes Kotlin by hand, so it rots the moment the codebase moves — a
+        # renamed package, a deprecated Compose API. Its first version was wrong three times over
+        # exactly that. Checking it here is cheap; the alternative is someone discovering it months
+        # later, mid-task.
+        if: ${{ !cancelled() }}
+        run: tools/test-new-feature.sh
+
       - name: Build the Android app
         run: ./gradlew :androidApp:assembleDebug
 
