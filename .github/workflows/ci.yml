@@ -64,7 +64,7 @@ jobs:
           plugins { id("io.github.mrlonewolfer.kmp.arch") version "$VERSION" }
           rootProject.name = "adopt"
           EOF
-          ./gradlew adoptStandards --apply
+          ./gradlew adoptArch --apply
           test -f CLAUDE.md
           test -f .claude/settings.json
           test -f .claude/skills/add-a-feature/SKILL.md

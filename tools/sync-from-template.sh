@@ -98,14 +98,14 @@ python3 - <<'PY'
 from pathlib import Path
 p = Path("standards/CLAUDE.md"); s = p.read_text(encoding="utf-8")
 header = """<!--
-  This file is installed by `./gradlew adoptStandards` and is REPLACED on every update.
+  This file is installed by `./gradlew adoptArch` and is REPLACED on every update.
   Do not edit it. Anything specific to this project goes in .claude/project.md, which the plugin
   never writes and never reads back.
 -->
 
 """
 s = s.replace("# KMP Template — Engineering Rules", "# Engineering rules", 1)
-if "adoptStandards" not in s.split("\n")[1:3][0]:
+if "adoptArch" not in s.split("\n")[1:3][0]:
     s = header + s
 if "@.claude/project.md" not in s:
     s = s.rstrip() + "\n\n---\n\n## This project\n\n@.claude/project.md\n"

@@ -12,13 +12,13 @@ import org.gradle.api.initialization.Settings
  * where per-module conventions would go if they are added later.
  *
  * It registers one task and changes nothing else. Applying a plugin should not rewrite someone's
- * repository; `adoptStandards` does that, and only after listing what it would touch.
+ * repository; `adoptArch` does that, and only after listing what it would touch.
  */
 class StandardsPlugin : Plugin<Settings> {
     override fun apply(settings: Settings) {
         settings.gradle.rootProject {
-            tasks.register("adoptStandards", AdoptStandardsTask::class.java) {
-                group = "kmp standards"
+            tasks.register("adoptArch", AdoptArchTask::class.java) {
+                group = "kmp arch"
                 description = "Installs or updates the shared engineering standards in this project."
             }
         }

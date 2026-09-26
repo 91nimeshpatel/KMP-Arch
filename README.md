@@ -11,8 +11,8 @@ plugins { id("io.github.mrlonewolfer.kmp.arch") version "0.7.0" }
 ```
 
 ```bash
-./gradlew adoptStandards            # lists every file it would write, and writes nothing
-./gradlew adoptStandards --apply    # writes them
+./gradlew adoptArch            # lists every file it would write, and writes nothing
+./gradlew adoptArch --apply    # writes them
 ```
 
 No GitHub account, no repository access, no npm. A Gradle build is the only requirement.
@@ -42,9 +42,9 @@ A project that needs a shared file to differ records the exception in `.claude/p
 reason**, rather than editing a file the next update overwrites. The same exception in a second
 project means the shared file is wrong; fix it here.
 
-`.standards-ignore` opts a path out entirely — one glob per line, `#` for comments.
+`.arch-ignore` opts a path out entirely — one glob per line, `#` for comments.
 
-`adoptStandards` leaves a file this project has edited alone and says so. `--force` takes the shared
+`adoptArch` leaves a file this project has edited alone and says so. `--force` takes the shared
 version back.
 
 ## Starting a new app

@@ -28,7 +28,7 @@ import java.util.zip.ZipInputStream
     because = "It writes into the project rather than into the build directory, so there is " +
         "no output Gradle could cache and replaying a cached run would write nothing.",
 )
-abstract class AdoptStandardsTask : DefaultTask() {
+abstract class AdoptArchTask : DefaultTask() {
 
     /** Where the files go. The project's root, unless a test points it somewhere else. */
     @get:Internal
@@ -112,13 +112,13 @@ abstract class AdoptStandardsTask : DefaultTask() {
         list("Would create", create, "+")
         list("Would replace", update, "!")
         list("Changed by this project, left alone", edited, "~")
-        list("Skipped by .standards-ignore", skipped, "-")
+        list("Skipped by .arch-ignore", skipped, "-")
         if (same.isNotEmpty()) logger.lifecycle("\nAlready up to date: ${same.size}")
     }
 
-    /** Globs from `.standards-ignore`, one per line, `#` for comments. */
+    /** Globs from `.arch-ignore`, one per line, `#` for comments. */
     private fun ignoredPatterns(target: File): List<Regex> {
-        val file = File(target, ".standards-ignore")
+        val file = File(target, ".arch-ignore")
         if (!file.isFile) return emptyList()
         return file.readLines()
             .map { it.trim() }

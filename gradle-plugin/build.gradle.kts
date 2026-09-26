@@ -37,7 +37,7 @@ gradlePlugin {
                 "architecture rules that run as tests, the CI and release workflows, CLAUDE.md " +
                 "and the path-scoped rules an agent reads, and the tooling that scaffolds a " +
                 "feature module. Apply it in settings.gradle.kts and run `./gradlew " +
-                "adoptStandards`; it reports every file it would write before writing anything."
+                "adoptArch`; it reports every file it would write before writing anything."
             tags = listOf("kotlin-multiplatform", "kmp", "android", "conventions", "architecture")
         }
     }
