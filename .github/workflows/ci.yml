@@ -55,6 +55,9 @@ jobs:
           fi
           echo "no conflict markers"
 
+      - name: The README agrees with the repository
+        run: python3 tools/check-readme.py
+
       - name: Every document a skill points at is shipped
         run: python3 tools/check-references.py
 

@@ -10,7 +10,7 @@ modules, and the instructions an AI agent reads before it touches your code.
 
 ```kotlin
 // settings.gradle.kts
-plugins { id("io.github.91nimeshpatel.kmp.arch") version "0.7.1" }
+plugins { id("io.github.91nimeshpatel.kmp.arch") version "0.7.3" }
 ```
 
 ```bash
@@ -42,6 +42,22 @@ one whose absence crashes the app at runtime with no build error.
 reads your architecture and your conventions, not its own defaults.
 
 **Updates are one command.** Bump the version, run `adoptArch` again.
+
+## What happens on first run
+
+The rules run immediately, and **some will fail** — that is them working, not them broken.
+
+Seven of the twenty check documents that belong to *your* project and cannot be shipped with the
+plugin: `docs/ARCHITECTURE.md` describing your modules and the decisions behind them, and
+`docs/LIBRARIES.md` describing what each of your dependencies is for and what breaks on upgrade.
+Shipping one project's copies of those would be confidently wrong in every other project, so the
+rules ask you to write them and name exactly what is missing.
+
+The other thirteen — layering, feature isolation, hard-coded strings, the generated module diagram,
+rule references — pass immediately.
+
+The architecture tests are a Gradle module, so they also need entries in your version catalog and an
+`include` in `settings.gradle.kts`. `adoptArch` prints the exact lines when they are absent.
 
 ## What it will not touch
 

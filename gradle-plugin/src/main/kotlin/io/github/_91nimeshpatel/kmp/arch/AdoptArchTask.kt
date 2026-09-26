@@ -106,6 +106,45 @@ abstract class AdoptArchTask : DefaultTask() {
             )
         }
         logger.lifecycle(NEXT_STEPS)
+        reportMissingCatalogEntries(target)
+    }
+
+    /**
+     * Says what the architecture tests still need from the project's version catalog.
+     *
+     * The tests are installed as a Gradle module, and that module resolves Konsist and the Kotlin
+     * JVM plugin through the catalog — which this task cannot write, because a project's versions
+     * are the project's business. Installing rules that cannot compile and saying nothing would be
+     * worse than not installing them, so it says exactly what to add.
+     */
+    private fun reportMissingCatalogEntries(target: File) {
+        if (!File(target, "architecture-tests").isDirectory) return
+        val catalog = File(target, "gradle/libs.versions.toml")
+        val text = if (catalog.isFile) catalog.readText() else ""
+        val missing = buildList {
+            if ("konsist" !in text) add("konsist")
+            if ("kotlinJvm" !in text) add("kotlinJvm")
+        }
+        if (missing.isEmpty()) return
+
+        logger.lifecycle(
+            """
+            The architecture tests need these in gradle/libs.versions.toml before they will compile
+            — missing: ${missing.joinToString(", ")}
+
+              [versions]
+              kotlin = "2.4.20"
+              konsist = "0.17.3"
+
+              [libraries]
+              konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+
+              [plugins]
+              kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+
+            and `include(":architecture-tests")` in settings.gradle.kts.
+            """.trimIndent(),
+        )
     }
 
     private fun report(
