@@ -1,4 +1,4 @@
-# KMP Standards
+# KMP Arch
 
 Engineering standards for Kotlin Multiplatform projects, packaged so that every project gets the
 same ones from one place instead of each keeping its own copy that slowly drifts.
@@ -11,8 +11,8 @@ reusable CI workflows are intended to follow, once there is a second project to 
 **From npm — no GitHub account, no access to this repository, nothing to be invited to.**
 
 ```bash
-claude plugin marketplace add https://unpkg.com/@mrlonewolfer/kmp-standards/.claude-plugin/marketplace.json
-claude plugin install kmp@kmp-standards
+claude plugin marketplace add https://unpkg.com/@mrlonewolfer/kmp-arch/.claude-plugin/marketplace.json
+claude plugin install kmp@kmp-arch
 ```
 
 The npm package is both the plugin and its own catalogue: `.claude-plugin/plugin.json` makes it a
@@ -22,21 +22,21 @@ one registry, nothing else to host.
 **From this repository**, if you have access to it:
 
 ```bash
-claude plugin marketplace add mrlonewolfer/KMP-Standards
-claude plugin install kmp@kmp-standards
+claude plugin marketplace add mrlonewolfer/KMP-Arch
+claude plugin install kmp@kmp-arch
 ```
 
 Or, while working on the plugin itself:
 
 ```bash
-claude --plugin-dir "/path/to/KMP Standards/kmp"
+claude --plugin-dir "/path/to/KMP Arch/kmp"
 ```
 
 To turn it on for everyone who clones a repository, add it to that repository's committed
 `.claude/settings.json`:
 
 ```json
-{ "enabledPlugins": { "kmp@kmp-standards": true } }
+{ "enabledPlugins": { "kmp@kmp-arch": true } }
 ```
 
 ## What the `kmp` plugin gives you

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "hooks": {
     "PostToolUse": [
       {
@@ -6,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/catalog-changed.py",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/hooks/catalog-changed.py",
             "timeout": 15,
             "statusMessage": "Checking the library playbook"
           }
@@ -18,21 +19,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/docs-gate.py",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/hooks/docs-gate.py",
             "timeout": 20,
             "statusMessage": "Checking the documents against the code"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.py",
-            "timeout": 10,
-            "statusMessage": "Checking the project's standards"
           }
         ]
       }

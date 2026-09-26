@@ -1,4 +1,4 @@
-package io.github.mrlonewolfer.kmp.standards
+package io.github.mrlonewolfer.kmp.arch
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty

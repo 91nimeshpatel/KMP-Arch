@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "kmp-standards-gradle-plugin"
+rootProject.name = "kmp-arch-gradle-plugin"

@@ -43,7 +43,7 @@ PATHS=(
 stale=()
 for path in "${PATHS[@]}"; do
   src="$TEMPLATE/$path"
-  dst="kmp/project/$path"
+  dst="standards/$path"
   [[ -e "$src" ]] || { echo "  missing in template: $path" >&2; continue; }
 
   if $CHECK; then
@@ -71,7 +71,7 @@ done
 
 if $CHECK; then
   # The Gradle plugin's resources are a copy of the npm bundle; they drift the same way.
-  if ! diff -rq --exclude=MANIFEST kmp/project "gradle-plugin/src/main/resources/standards" >/dev/null 2>&1; then
+  if ! diff -rq --exclude=MANIFEST standards "gradle-plugin/src/main/resources/standards" >/dev/null 2>&1; then
     stale+=("gradle-plugin/src/main/resources/standards")
   fi
   if (( ${#stale[@]} )); then
@@ -87,7 +87,7 @@ fi
 # neither, so the header and the pointer are re-applied after every sync.
 python3 - <<'PY'
 from pathlib import Path
-p = Path("kmp/project/CLAUDE.md"); s = p.read_text(encoding="utf-8")
+p = Path("standards/CLAUDE.md"); s = p.read_text(encoding="utf-8")
 header = """<!--
   This file is installed by the `kmp` plugin (kmp:adopt-standards) and is REPLACED on every update.
   Do not edit it. Anything specific to this project goes in .claude/project.md, which the plugin
@@ -111,9 +111,9 @@ echo "==> mirroring into the Gradle plugin's resources"
 RESOURCES="gradle-plugin/src/main/resources/standards"
 rm -rf "$RESOURCES"
 mkdir -p "$RESOURCES"
-cp -R kmp/project/. "$RESOURCES/"
+cp -R standards/. "$RESOURCES/"
 find "$RESOURCES" -type f | sed "s|$RESOURCES/||" | sort > "$RESOURCES/MANIFEST"
 echo "    $(wc -l < "$RESOURCES/MANIFEST" | xargs) files"
 
 echo
-echo "Now bump kmp/.claude-plugin/plugin.json — a fix that does not change the version reaches nobody."
+echo "Now bump VERSION — a fix that does not change the version reaches nobody."
