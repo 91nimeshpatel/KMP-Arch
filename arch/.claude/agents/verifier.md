@@ -34,7 +34,7 @@ adb shell screencap -p /sdcard/s.png && adb pull /sdcard/s.png <path>
 ```bash
 xcodebuild build -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO
-xcrun simctl install booted "build/ios/Build/Products/Debug-iphonesimulator/KMP Template.app"
+xcrun simctl install booted "$(ls -d build/ios/Build/Products/Debug-iphonesimulator/*.app | head -1)"
 xcrun simctl launch booted com.vidmira.kmptemplate
 xcrun simctl io booted screenshot <path>
 ```
