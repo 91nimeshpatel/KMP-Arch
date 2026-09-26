@@ -20,6 +20,7 @@ class ArchPlugin : Plugin<Settings> {
             tasks.register("adoptArch", AdoptArchTask::class.java) {
                 group = "kmp arch"
                 description = "Installs or updates the shared engineering standards in this project."
+                targetDirectory.set(layout.projectDirectory)
             }
         }
     }

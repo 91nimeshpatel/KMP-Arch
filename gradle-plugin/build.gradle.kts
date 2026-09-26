@@ -42,3 +42,10 @@ gradlePlugin {
         }
     }
 }
+
+// Declared because it is true and was checked, not because the Portal asks: the task reaches for
+// the project directory when it is created rather than while it runs, and two identical runs
+// report "Configuration cache entry reused".
+tasks.withType<com.gradle.publish.PublishTask>().configureEach {
+    notCompatibleWithConfigurationCache("The publish task talks to the Gradle Plugin Portal.")
+}

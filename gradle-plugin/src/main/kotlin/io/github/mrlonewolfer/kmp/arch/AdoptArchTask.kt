@@ -30,7 +30,12 @@ import java.util.zip.ZipInputStream
 )
 abstract class AdoptArchTask : DefaultTask() {
 
-    /** Where the files go. The project's root, unless a test points it somewhere else. */
+    /**
+     * Where the files go — the project's root, set when the task is created.
+     *
+     * Resolved at configuration time rather than read from `project` while the task runs, because
+     * reaching for the project during execution is what the configuration cache forbids.
+     */
     @get:Internal
     abstract val targetDirectory: DirectoryProperty
 
@@ -46,7 +51,7 @@ abstract class AdoptArchTask : DefaultTask() {
 
     @TaskAction
     fun run() {
-        val target = targetDirectory.orNull?.asFile ?: project.rootDir
+        val target = targetDirectory.get().asFile
         val bundled = readBundle()
         check(bundled.isNotEmpty()) { "The plugin carries no standards. This is a packaging bug." }
 
