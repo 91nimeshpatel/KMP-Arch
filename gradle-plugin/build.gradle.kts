@@ -3,10 +3,11 @@ plugins {
     id("com.gradle.plugin-publish") version "2.2.1"
 }
 
-// The group carries the underscore because a Java package segment cannot start with a digit;
-// the plugin id below keeps the handle exactly, which is what the Portal compares against
-// github.com/91nimeshpatel. Only the id is ever typed by a user.
-group = "io.github._91nimeshpatel"
+// The group matches the plugin id's namespace, which the Portal requires: it rejected
+// io.github._91nimeshpatel against an id of io.github.91nimeshpatel.kmp.arch. A Maven group may
+// start a segment with a digit; only a Java package may not, which is why the Kotlin package below
+// keeps the underscore and this does not. Group, id and GitHub handle now all read the same.
+group = "io.github.91nimeshpatel"
 
 // `./gradlew publishToMavenLocal` puts it in ~/.m2, which is how it gets tried against a real
 // project before it is published anywhere anyone else can reach.
