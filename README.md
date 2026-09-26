@@ -10,7 +10,7 @@ modules, and the instructions an AI agent reads before it touches your code.
 
 ```kotlin
 // settings.gradle.kts
-plugins { id("io.github.91nimeshpatel.kmp.arch") version "0.7.1" }
+plugins { id("io.github.91nimeshpatel.kmp.arch") version "0.7.3" }
 ```
 
 ```bash
@@ -43,6 +43,22 @@ reads your architecture and your conventions, not its own defaults.
 
 **Updates are one command.** Bump the version, run `adoptArch` again.
 
+## What happens on first run
+
+The rules run immediately, and **some will fail** — that is them working, not them broken.
+
+Seven of the twenty check documents that belong to *your* project and cannot be shipped with the
+plugin: `docs/ARCHITECTURE.md` describing your modules and the decisions behind them, and
+`docs/LIBRARIES.md` describing what each of your dependencies is for and what breaks on upgrade.
+Shipping one project's copies of those would be confidently wrong in every other project, so the
+rules ask you to write them and name exactly what is missing.
+
+The other thirteen — layering, feature isolation, hard-coded strings, the generated module diagram,
+rule references — pass immediately.
+
+The architecture tests are a Gradle module, so they also need entries in your version catalog and an
+`include` in `settings.gradle.kts`. `adoptArch` prints the exact lines when they are absent.
+
 ## What it will not touch
 
 | Owner | |
@@ -53,20 +69,8 @@ reads your architecture and your conventions, not its own defaults.
 If a shared file does not fit, record the exception in `.claude/project.md` with the reason rather
 than editing a file the next update overwrites.
 
-<<<<<<< Updated upstream
-`adoptArch` leaves a file you changed alone and tells you which. `--force` takes the shared version
-back. `.arch-ignore` opts a path out — one glob per line.
-=======
 `adoptArch` leaves a file you have changed alone and tells you which. `--force` takes the shared
 version back. `.arch-ignore` opts a path out entirely — one glob per line.
-
-## Starting a new app
-
-Use [KMP-Template](https://github.com/91nimeshpatel/KMP-Template) instead: a working Android and iOS
-app that already contains these standards, with both platforms building and eight end-to-end
-scenarios passing on each. This plugin is for projects that already exist, and for updating the
-standards in any project later.
->>>>>>> Stashed changes
 
 ## Requirements
 
@@ -78,4 +82,7 @@ read them before wiring them into your build gate.
 
 ## Licence
 
-MIT.
+MIT — see [LICENSE](LICENSE).
+
+Copyright © 2026 Nimesh Patel. You may use, modify and distribute this freely, including
+commercially, provided the copyright notice and licence text travel with it.

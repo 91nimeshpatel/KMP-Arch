@@ -44,6 +44,20 @@ jobs:
           echo "::warning::Could not read 91nimeshpatel/KMP-Template, so the bundle was not checked"
           echo "::warning::for staleness. Make it public, or add a TEMPLATE_READ_TOKEN secret."
 
+      - name: No unresolved conflict markers
+        # One reached a public README: a `git stash pop` during a recovery left conflict markers in
+        # it, they were committed, and nobody noticed until a reader did. A grep is cheaper than
+        # that.
+        run: |
+          if grep -rn '^<<<<<<< \|^>>>>>>> \|^=======$' --exclude-dir=.git --exclude-dir=build .; then
+            echo "::error::Unresolved merge conflict markers"
+            exit 1
+          fi
+          echo "no conflict markers"
+
+      - name: The README agrees with the repository
+        run: python3 tools/check-readme.py
+
       - name: Every document a skill points at is shipped
         run: python3 tools/check-references.py
 
