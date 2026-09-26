@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2026 mrlonewolfer
+ * Copyright (c) 2026 Nimesh Patel
  *
  * Licensed under the MIT License. See the LICENSE file in the project root for the full text.
- * https://github.com/mrlonewolfer/KMP-Arch
+ * https://github.com/91nimeshpatel/KMP-Arch
  */
-package io.github.mrlonewolfer.kmp.arch
+package io.github._91nimeshpatel.kmp.arch
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings

@@ -3,7 +3,10 @@ plugins {
     id("com.gradle.plugin-publish") version "2.2.1"
 }
 
-group = "io.github.mrlonewolfer"
+// The group carries the underscore because a Java package segment cannot start with a digit;
+// the plugin id below keeps the handle exactly, which is what the Portal compares against
+// github.com/91nimeshpatel. Only the id is ever typed by a user.
+group = "io.github._91nimeshpatel"
 
 // `./gradlew publishToMavenLocal` puts it in ~/.m2, which is how it gets tried against a real
 // project before it is published anywhere anyone else can reach.
@@ -24,13 +27,13 @@ kotlin {
 }
 
 gradlePlugin {
-    website = "https://github.com/mrlonewolfer/KMP-Arch"
-    vcsUrl = "https://github.com/mrlonewolfer/KMP-Arch.git"
+    website = "https://github.com/91nimeshpatel/KMP-Arch"
+    vcsUrl = "https://github.com/91nimeshpatel/KMP-Arch.git"
 
     plugins {
         create("standards") {
-            id = "io.github.mrlonewolfer.kmp.arch"
-            implementationClass = "io.github.mrlonewolfer.kmp.arch.ArchPlugin"
+            id = "io.github.91nimeshpatel.kmp.arch"
+            implementationClass = "io.github._91nimeshpatel.kmp.arch.ArchPlugin"
             displayName = "KMP engineering standards"
             description =
                 "Installs a Kotlin Multiplatform project's shared engineering standards: the " +
@@ -54,29 +57,29 @@ afterEvaluate {
                 "Engineering standards for Kotlin Multiplatform projects, installed by one Gradle " +
                 "task: architecture rules that run as tests, CI and release workflows, agent rules " +
                 "and skills, and feature-module scaffolding."
-            url = "https://github.com/mrlonewolfer/KMP-Arch"
+            url = "https://github.com/91nimeshpatel/KMP-Arch"
             inceptionYear = "2026"
 
             licenses {
                 license {
                     name = "MIT License"
-                    url = "https://github.com/mrlonewolfer/KMP-Arch/blob/main/LICENSE"
+                    url = "https://github.com/91nimeshpatel/KMP-Arch/blob/main/LICENSE"
                     distribution = "repo"
                 }
             }
 
             developers {
                 developer {
-                    id = "mrlonewolfer"
-                    name = "mrlonewolfer"
-                    url = "https://github.com/mrlonewolfer"
+                    id = "91nimeshpatel"
+                    name = "Nimesh Patel"
+                    url = "https://github.com/91nimeshpatel"
                 }
             }
 
             scm {
-                url = "https://github.com/mrlonewolfer/KMP-Arch"
-                connection = "scm:git:https://github.com/mrlonewolfer/KMP-Arch.git"
-                developerConnection = "scm:git:ssh://git@github.com/mrlonewolfer/KMP-Arch.git"
+                url = "https://github.com/91nimeshpatel/KMP-Arch"
+                connection = "scm:git:https://github.com/91nimeshpatel/KMP-Arch.git"
+                developerConnection = "scm:git:ssh://git@github.com/91nimeshpatel/KMP-Arch.git"
             }
         }
     }

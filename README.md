@@ -10,7 +10,7 @@ modules, and the instructions an AI agent reads before it touches your code.
 
 ```kotlin
 // settings.gradle.kts
-plugins { id("io.github.mrlonewolfer.kmp.arch") version "0.7.1" }
+plugins { id("io.github.91nimeshpatel.kmp.arch") version "0.7.1" }
 ```
 
 ```bash
@@ -53,8 +53,20 @@ reads your architecture and your conventions, not its own defaults.
 If a shared file does not fit, record the exception in `.claude/project.md` with the reason rather
 than editing a file the next update overwrites.
 
+<<<<<<< Updated upstream
 `adoptArch` leaves a file you changed alone and tells you which. `--force` takes the shared version
 back. `.arch-ignore` opts a path out — one glob per line.
+=======
+`adoptArch` leaves a file you have changed alone and tells you which. `--force` takes the shared
+version back. `.arch-ignore` opts a path out entirely — one glob per line.
+
+## Starting a new app
+
+Use [KMP-Template](https://github.com/91nimeshpatel/KMP-Template) instead: a working Android and iOS
+app that already contains these standards, with both platforms building and eight end-to-end
+scenarios passing on each. This plugin is for projects that already exist, and for updating the
+standards in any project later.
+>>>>>>> Stashed changes
 
 ## Requirements
 

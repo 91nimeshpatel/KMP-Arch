@@ -30,7 +30,7 @@ jobs:
         continue-on-error: true
         uses: actions/checkout@v7
         with:
-          repository: mrlonewolfer/KMP-Template
+          repository: 91nimeshpatel/KMP-Template
           path: kmp-template
           token: ${{ secrets.TEMPLATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
 
@@ -41,7 +41,7 @@ jobs:
       - name: Staleness check skipped
         if: steps.template.outcome != 'success'
         run: |
-          echo "::warning::Could not read mrlonewolfer/KMP-Template, so the bundle was not checked"
+          echo "::warning::Could not read 91nimeshpatel/KMP-Template, so the bundle was not checked"
           echo "::warning::for staleness. Make it public, or add a TEMPLATE_READ_TOKEN secret."
 
       - name: Every document a skill points at is shipped
@@ -61,7 +61,7 @@ jobs:
           VERSION=$(cat "$GITHUB_WORKSPACE/VERSION")
           cat > settings.gradle.kts <<EOF
           pluginManagement { repositories { mavenLocal(); gradlePluginPortal() } }
-          plugins { id("io.github.mrlonewolfer.kmp.arch") version "$VERSION" }
+          plugins { id("io.github.91nimeshpatel.kmp.arch") version "$VERSION" }
           rootProject.name = "adopt"
           EOF
           ./gradlew adoptArch --apply
