@@ -46,8 +46,7 @@ from. If you are naming classes, you have gone too far — that is the plan's jo
 
 ## 5. Hand it back
 
-Use `@../../reference/spec-template.md` and save it as `docs/intents/<same-name>-spec.md`, next to
-its intent. Show it to whoever raised the intent
+Save as `docs/intents/<same-name>-spec.md`, next to its intent. Show it to whoever raised the intent
 and walk them through the concerns first. They decide whether it proceeds.
 
 Commit the pair together: the intent records what was asked for, the spec what was decided.

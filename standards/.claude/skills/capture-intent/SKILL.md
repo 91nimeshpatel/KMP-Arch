@@ -26,7 +26,7 @@ than the one first imagined.
 
 ## 2. Write it up
 
-Use `@../../reference/intent-template.md`, saved as `docs/intents/<short-name>.md`. Keep the originator's own
+Use `docs/intents/TEMPLATE.md`, saved as `docs/intents/<short-name>.md`. Keep the originator's own
 words where you can — a rewrite in neutral corporate prose loses the detail that made it useful.
 
 State the problem, not the design. If you find yourself naming a class or a library, you have gone

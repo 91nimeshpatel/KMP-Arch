@@ -6,7 +6,7 @@ description: Add a new screen, feature module, ViewModel or user-visible string 
 # Adding a feature
 
 `feature/welcome` is the worked example — read it alongside this. The full reasoning is in
-`@../../reference/ADDING_A_FEATURE.md`; this is the order of operations and the traps.
+`docs/ADDING_A_FEATURE.md`; this is the order of operations and the traps.
 
 ## 1. Decide whether you need a module
 

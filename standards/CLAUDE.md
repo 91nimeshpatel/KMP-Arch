@@ -1,5 +1,5 @@
 <!--
-  This file is installed by the `kmp` plugin (kmp:adopt-standards) and is REPLACED on every update.
+  This file is installed by `./gradlew adoptStandards` and is REPLACED on every update.
   Do not edit it. Anything specific to this project goes in .claude/project.md, which the plugin
   never writes and never reads back.
 -->

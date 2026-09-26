@@ -5,6 +5,34 @@ What to test, where it goes, and how to run it. These rules are binding
 
 ---
 
+## 0. The E2E suite runs on both platforms, and that is not free
+
+It passed eight of eight on Android for a long time while being unable to run on iOS at all. When it
+was finally run there, five things were wrong — and four of them were one problem wearing four
+disguises.
+
+Worth knowing before you add a scenario:
+
+- **An attribute that exists on one platform may not exist on the other.** `checked` is
+  UiAutomator2's; asking XCUITest for it does not return nothing, it fails the call. Read selection
+  state through `Page.is_selected`.
+- **A system dialog belongs to the OS, not the app.** On iOS it is another window, so the edge-swipe
+  that `back()` performs cannot reach it and it stays up, blocking every scenario that follows. Use
+  `dismiss_system_dialog`.
+- **Wait for a thing to stop moving, not to exist.** A drawer enters the accessibility tree as soon
+  as it starts sliding in, so a tap that follows is aimed at a rect it has already left. On iOS,
+  where taps go by coordinate, it lands on nothing. `open_drawer` now waits with
+  `wait_until_still`, and that single fix accounted for four separate "iOS limitations".
+- **`element.click()` and a coordinate tap are not the same thing on iOS.** `Page.tap` taps the
+  centre, because a click on a Compose element is accepted by XCUITest and never reaches Compose.
+- **A run that passes once has proved nothing about a race.** Three consecutive green runs is the
+  bar for a change to the shared page objects, on both platforms.
+
+When a scenario fails, the suite saves a screenshot and the page source under `tools/e2e/artifacts`.
+Read them. The answer to the drawer problem was sitting in one of those files for two hours:
+`nav_drawer` reporting `visible="false"` while the items inside it reported `visible="true"` is what
+a half-open drawer looks like.
+
 ## 1. Where a test goes
 
 The binding table lives in [`.claude/rules/testing.md`](../.claude/rules/testing.md), which loads

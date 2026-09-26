@@ -12,8 +12,7 @@ Work through this in order. Do not start at step 3.
 
 ## 1. Read before you touch
 
-Open your project's `docs/LIBRARIES.md` and find the entry for the library.
-If you are writing a new entry, `@../../reference/library-entry-format.md` is the shape it takes. It records how **this project** uses
+Open `docs/LIBRARIES.md` and find the entry for the library. It records how **this project** uses
 it, the precautions that fail silently, and what to re-verify on upgrade. Rediscovering those costs
 a day; reading them costs a minute.
 

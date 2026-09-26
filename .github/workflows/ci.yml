@@ -1,7 +1,7 @@
-# Checks the plugin is installable and its bundled copies are not stale.
+# Checks the bundle is current and that what it ships actually works where it lands.
 #
-# Both failures are silent otherwise: a malformed manifest only shows up when someone installs it,
-# and a stale bundle only shows up as a project quietly running last month's rules.
+# Both failures are quiet otherwise: a stale bundle ships last month's rules to every project, and
+# a skill that points at a document the bundle does not carry fails for whoever follows it.
 name: ci
 
 on:
@@ -11,18 +11,22 @@ on:
 
 jobs:
   verify:
-    name: Plugin manifests and bundled files
+    name: Bundle and plugin
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
       - name: Check out the template beside it
         id: template
-        # KMP-Template is private, and this repository's GITHUB_TOKEN only reaches this repository,
-        # so the checkout 404s. That is an access problem, not a broken check — so the step is
-        # allowed to fail and the staleness check skips rather than turning the whole build red for
-        # a reason nobody can act on from here.
+        # The template is private and this repository's GITHUB_TOKEN only reaches this repository,
+        # so the checkout 404s. That is an access problem, not a broken check, so the staleness
+        # check skips rather than turning the build red for something nobody here can act on.
         continue-on-error: true
         uses: actions/checkout@v7
         with:
@@ -30,57 +34,41 @@ jobs:
           path: kmp-template
           token: ${{ secrets.TEMPLATE_READ_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: The bundled files match the template
+      - name: The bundle matches the template
         if: steps.template.outcome == 'success'
         run: tools/sync-from-template.sh --check kmp-template
 
       - name: Staleness check skipped
         if: steps.template.outcome != 'success'
         run: |
-          echo "::warning::Could not read mrlonewolfer/KMP-Template, so the bundled files were not"
-          echo "::warning::checked for staleness. Make the template public, or add a TEMPLATE_READ_TOKEN"
-          echo "::warning::secret with read access to it. Until then, run this before a release:"
-          echo "::warning::    tools/sync-from-template.sh --check"
+          echo "::warning::Could not read mrlonewolfer/KMP-Template, so the bundle was not checked"
+          echo "::warning::for staleness. Make it public, or add a TEMPLATE_READ_TOKEN secret."
 
-      - name: Versions agree across the three files that carry one
-        run: tools/check-versions.sh
+      - name: Every document a skill points at is shipped
+        run: python3 tools/check-references.py
 
-      - name: The npm package contains what the plugin needs
-        # `files` in package.json is an allowlist. Forget an entry and the package publishes
-        # happily, missing a skill or the whole project/ tree, and nobody finds out until someone
-        # installs it.
+      - name: The plugin builds and passes Gradle's own validation
+        run: cd gradle-plugin && ./gradlew build
+
+      - name: A real project can adopt the standards
+        # The only check that proves the thing works: publish locally, apply it to an empty project,
+        # and count what lands. Everything else tests the parts.
         run: |
-          cd kmp && npm pack --pack-destination /tmp >/dev/null
-          mkdir -p /tmp/unpacked && tar -xzf /tmp/*.tgz -C /tmp/unpacked
-          for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
-                   hooks/session-start.py project/CLAUDE.md project/tools/new-feature.py; do
-            test -f "/tmp/unpacked/package/$f" || { echo "::error::missing from the package: $f"; exit 1; }
-          done
-          echo "packed $(find /tmp/unpacked/package -type f | wc -l) files"
-
-      - name: Manifests are valid JSON
-        run: |
-          python3 -c "import json; json.load(open('.claude-plugin/marketplace.json'))"
-          python3 -c "import json; json.load(open('kmp/.claude-plugin/plugin.json'))"
-          python3 -c "import json; json.load(open('kmp/hooks/hooks.json'))"
-
-      - name: Every reference in a skill resolves
-        # A skill that imports a file which is not there fails when someone uses it, not now.
-        run: |
-          python3 - <<'PY'
-          import re, sys
-          from pathlib import Path
-          bad = []
-          for skill in Path("kmp/skills").rglob("SKILL.md"):
-              for ref in re.findall(r"@((?:\.\./)+[A-Za-z0-9._/-]+)", skill.read_text()):
-                  if not (skill.parent / ref).resolve().is_file():
-                      bad.append(f"{skill}: {ref}")
-          print("\n".join(bad) if bad else "all references resolve")
-          sys.exit(1 if bad else 0)
-          PY
-
-      - name: The hooks run without error
-        # They are invoked on every edit and at the end of every turn, so a crash here is loud.
-        run: |
-          echo '{"tool_input":{"file_path":"/x/other.kt"},"cwd":"."}' | python3 kmp/hooks/catalog-changed.py
-          echo '{"cwd":".","scratchpad_dir":"/tmp/gate"}' | python3 kmp/hooks/docs-gate.py
+          cd gradle-plugin && ./gradlew publishToMavenLocal -q && cd ..
+          mkdir -p /tmp/adopt && cd /tmp/adopt
+          cp "$GITHUB_WORKSPACE/gradle-plugin/gradlew" .
+          cp -R "$GITHUB_WORKSPACE/gradle-plugin/gradle" .
+          VERSION=$(cat "$GITHUB_WORKSPACE/VERSION")
+          cat > settings.gradle.kts <<EOF
+          pluginManagement { repositories { mavenLocal(); gradlePluginPortal() } }
+          plugins { id("io.github.mrlonewolfer.kmp.arch") version "$VERSION" }
+          rootProject.name = "adopt"
+          EOF
+          ./gradlew adoptStandards --apply
+          test -f CLAUDE.md
+          test -f .claude/settings.json
+          test -f .claude/skills/add-a-feature/SKILL.md
+          test -f docs/ADDING_A_FEATURE.md
+          test -f architecture-tests/src/test/kotlin/LayerDependencyTest.kt
+          test -x tools/new-feature.py
+          echo "adopted $(find . -type f -not -path './gradle/*' -not -path './.gradle/*' | wc -l) files"

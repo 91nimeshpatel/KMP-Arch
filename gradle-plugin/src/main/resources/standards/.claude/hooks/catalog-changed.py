@@ -21,16 +21,9 @@ def main() -> int:
         return 0
 
     root = Path(payload.get("cwd", "."))
-    catalog_file = root / CATALOG
+    catalog = (root / CATALOG).read_text(encoding="utf-8")
     playbook_file = root / PLAYBOOK
-
-    # Say nothing in a project that does not keep a playbook. The convention is worth having, but a
-    # plugin that lectures every repository it lands in gets turned off, and then it helps nobody.
-    if not catalog_file.is_file() or not playbook_file.is_file():
-        return 0
-
-    catalog = catalog_file.read_text(encoding="utf-8")
-    playbook = playbook_file.read_text(encoding="utf-8")
+    playbook = playbook_file.read_text(encoding="utf-8") if playbook_file.is_file() else ""
 
     versions = dict(
         re.findall(r'^([A-Za-z0-9_.-]+)\s*=\s*"([^"]+)"', catalog.split("[versions]")[-1].split("[libraries]")[0], re.M)

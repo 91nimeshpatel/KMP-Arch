@@ -22,11 +22,20 @@ done
 
 [[ -d "$TEMPLATE" ]] || { echo "Template not found at: $TEMPLATE" >&2; exit 1; }
 
-# Everything the plugin installs into a project. Keep in step with kmp/skills/adopt-standards.
+# Everything the Gradle plugin installs into a project.
 PATHS=(
   CLAUDE.md
   REVIEW.md
   .claude/rules
+  .claude/skills
+  .claude/agents
+  .claude/hooks
+  .claude/settings.json
+  docs/ADDING_A_FEATURE.md
+  docs/TESTING.md
+  docs/intents/TEMPLATE.md
+  docs/intents/TEMPLATE-spec.md
+  docs/intents/README.md
   .github/workflows
   .github/actions
   .github/rulesets
@@ -89,14 +98,14 @@ python3 - <<'PY'
 from pathlib import Path
 p = Path("standards/CLAUDE.md"); s = p.read_text(encoding="utf-8")
 header = """<!--
-  This file is installed by the `kmp` plugin (kmp:adopt-standards) and is REPLACED on every update.
+  This file is installed by `./gradlew adoptStandards` and is REPLACED on every update.
   Do not edit it. Anything specific to this project goes in .claude/project.md, which the plugin
   never writes and never reads back.
 -->
 
 """
 s = s.replace("# KMP Template — Engineering Rules", "# Engineering rules", 1)
-if "kmp:adopt-standards" not in s:
+if "adoptStandards" not in s.split("\n")[1:3][0]:
     s = header + s
 if "@.claude/project.md" not in s:
     s = s.rstrip() + "\n\n---\n\n## This project\n\n@.claude/project.md\n"
