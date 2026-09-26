@@ -1,0 +1,106 @@
+# Turns a tag into a release.
+#
+# The tag is the source of truth for the version: `v1.4.0` builds versionName 1.4.0, and the run
+# number becomes versionCode, so it always climbs. Nobody edits a version by hand, and the version
+# in an artifact can always be traced back to the commit it was cut from.
+#
+# This deliberately stops at a GitHub Release. Uploading to Play or the App Store needs signing
+# material and store credentials that belong to your project, not to a template — see the
+# "Signing and store upload" note at the bottom of this file for where they plug in.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  # Actions > release > Run workflow: rehearse the whole thing without cutting a tag.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build, without the leading v (e.g. 1.4.0)'
+        required: true
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  # The same gate every pull request passes. A tag is not a reason to skip it — it is the one build
+  # that reaches users, so it earns more checking, not less.
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-android
+        with:
+          cache-read-only: true
+
+      - name: Work out the version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            NAME="${{ inputs.version }}"
+          else
+            NAME="${GITHUB_REF_NAME#v}"
+          fi
+          # Reject anything that is not x.y.z, so a mistyped tag fails here rather than shipping.
+          echo "$NAME" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || {
+            echo "::error::'$NAME' is not a semantic version. Tag releases as v1.4.0."; exit 1; }
+          # versionCode is computed from the version, not from the run number. A run number resets
+          # if a workflow file is renamed, and every store requires this to increase forever — so
+          # it is derived from something that only ever goes up.
+          #   1.4.0 -> 1*1000000 + 4*10000 + 0*100 + 99 = 1040099
+          # The trailing 99 leaves room below it for release candidates, should they ever be added.
+          IFS=. read -r MAJOR MINOR PATCH <<< "$NAME"
+          CODE=$(( MAJOR * 1000000 + MINOR * 10000 + PATCH * 100 + 99 ))
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "Building $NAME (versionCode $CODE)"
+
+      - name: Build the release APK
+        run: |
+          ./gradlew :androidApp:assembleRelease \
+            -PversionName=${{ steps.version.outputs.name }} \
+            -PversionCode=${{ steps.version.outputs.code }}
+
+      - name: Confirm the APK carries the version we asked for
+        # Cheap, and it catches the whole class of "the flag was ignored" bugs.
+        run: |
+          BADGING=$("$ANDROID_HOME"/build-tools/*/aapt2 dump badging \
+            androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk | head -1)
+          echo "$BADGING"
+          echo "$BADGING" | grep -q "versionName='${{ steps.version.outputs.name }}'" || {
+            echo "::error::The APK does not carry version ${{ steps.version.outputs.name }}"; exit 1; }
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.version.outputs.name }}" \
+            --title "v${{ steps.version.outputs.name }}" \
+            --generate-notes \
+            --draft \
+            androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk
+
+# ## Signing and store upload
+#
+# The APK above is **unsigned**, on purpose: a template must not carry signing material, and this
+# repository has a rule against it. To ship for real:
+#
+#  1. Keep the keystore in a private vault repository, never here.
+#  2. Give CI a short-lived token to fetch it, and export KEYSTORE_FILE, KEYSTORE_PASSWORD,
+#     KEY_ALIAS and KEY_PASSWORD before the build step.
+#  3. Add a `signingConfigs` block to androidApp/build.gradle.kts that reads those.
+#  4. Add an upload step after the release — for Play, r0adkll/upload-google-play with a staged
+#     rollout.
+#
+# Until then this produces a draft release you download and sign yourself, which is the right
+# default for a template: nothing reaches a store by accident.

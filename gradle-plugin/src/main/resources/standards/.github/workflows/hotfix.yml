@@ -1,0 +1,54 @@
+# Starts a hotfix on a release that is already out (docs/RELEASE_PLAN.md §4).
+#
+# It only prepares the branch. The fix itself goes through the normal path — pull request, the same
+# checks, a tag — because a fix made in a hurry is exactly the one that needs the gate, not the one
+# that should skip it.
+name: hotfix
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Release branch to patch, e.g. release/1.4'
+        required: true
+        type: string
+      slug:
+        description: 'Short description, e.g. crash-on-cold-start'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  start:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Branch from the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE="${{ inputs.release_branch }}"
+          SLUG=$(echo "${{ inputs.slug }}" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-')
+          BRANCH="fix/$SLUG"
+
+          git ls-remote --exit-code --heads origin "$BASE" >/dev/null 2>&1 || {
+            echo "::error::$BASE does not exist. Cut it first, or check the name."; exit 1; }
+
+          git checkout -b "$BRANCH" "origin/$BASE"
+          git push origin "$BRANCH"
+
+          echo "::notice::Created $BRANCH from $BASE"
+          cat <<NEXT
+          Next:
+            1. Write a test that fails because of the bug, and commit it first.
+            2. Fix the code until that test passes. Do not change the test.
+            3. Open a pull request into $BASE. The usual checks apply.
+            4. Tag the patch, then merge $BASE back into main so the fix is not lost
+               in the next release.
+          NEXT

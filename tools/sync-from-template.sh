@@ -70,6 +70,10 @@ CMP
 done
 
 if $CHECK; then
+  # The Gradle plugin's resources are a copy of the npm bundle; they drift the same way.
+  if ! diff -rq --exclude=MANIFEST kmp/project "gradle-plugin/src/main/resources/standards" >/dev/null 2>&1; then
+    stale+=("gradle-plugin/src/main/resources/standards")
+  fi
   if (( ${#stale[@]} )); then
     printf 'Stale bundled files:\n'; printf '  %s\n' "${stale[@]}"
     echo; echo "Run tools/sync-from-template.sh, then bump the plugin version."
@@ -99,6 +103,17 @@ if "@.claude/project.md" not in s:
 p.write_text(s, encoding="utf-8")
 print("  re-applied the ownership header and the project pointer to CLAUDE.md")
 PY
+
+# The Gradle plugin carries the same files, inside its jar. Copied from the npm bundle rather than
+# from the template again, so the two artifacts cannot disagree about what the standards are: there
+# is one place they are assembled, and both read from it.
+echo "==> mirroring into the Gradle plugin's resources"
+RESOURCES="gradle-plugin/src/main/resources/standards"
+rm -rf "$RESOURCES"
+mkdir -p "$RESOURCES"
+cp -R kmp/project/. "$RESOURCES/"
+find "$RESOURCES" -type f | sed "s|$RESOURCES/||" | sort > "$RESOURCES/MANIFEST"
+echo "    $(wc -l < "$RESOURCES/MANIFEST" | xargs) files"
 
 echo
 echo "Now bump kmp/.claude-plugin/plugin.json — a fix that does not change the version reaches nobody."

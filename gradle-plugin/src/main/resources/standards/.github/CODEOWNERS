@@ -1,0 +1,37 @@
+# Who reviews what.
+#
+# GitHub reads this file to request reviews automatically. With branch protection set to require a
+# code owner's approval, it also decides who *can* approve a change — which is what stops the person
+# who wrote a change being the only person who looked at it.
+#
+# Replace @mrlonewolfer below with your own handle or team. On a one-person project the single
+# default line is the whole file, and that is fine: it still makes every pull request request a
+# review, and the structure is here for when a second person arrives.
+#
+# The last matching rule wins, so the default goes first and the specific rules follow.
+
+# --- Default: everything, unless something below is more specific -------------------------------
+*                           @mrlonewolfer
+
+# --- Things that are expensive to get wrong -----------------------------------------------------
+# The build. A mistake here breaks everyone, and the damage is not visible in a diff.
+/build-logic/               @mrlonewolfer
+/gradle/libs.versions.toml  @mrlonewolfer
+**/build.gradle.kts         @mrlonewolfer
+
+# The rules themselves, and what an agent reads before it starts. A change here changes how every
+# future change is made, so it deserves the same scrutiny as the code.
+/CLAUDE.md                  @mrlonewolfer
+/.claude/                   @mrlonewolfer
+/REVIEW.md                  @mrlonewolfer
+/architecture-tests/        @mrlonewolfer
+
+# CI and releases: the path anything takes to reach a user.
+/.github/                   @mrlonewolfer
+
+# --- Where a second reviewer starts paying off --------------------------------------------------
+# When the team grows, this is the natural first split: whoever owns data owns the schema, because
+# a migration is the one mistake you cannot undo on a user's device.
+# /core/database/           @your-org/data
+# /core/designsystem/       @your-org/design
+# /feature/                 @your-org/mobile

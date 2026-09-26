@@ -1,0 +1,45 @@
+# Cuts a release branch from main (docs/RELEASE_PLAN.md §4).
+#
+# Run it when a minor version is ready to stabilise. Afterwards only fixes land on the branch, so
+# main stays open for the next feature while the release settles.
+name: release-cut
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Minor version to cut, e.g. 1.4 (creates release/1.4)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  cut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Cut the branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ inputs.version }}"
+          # x.y only. A patch number here would mean someone is confusing a branch with a tag.
+          echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+$' || {
+            echo "::error::'$VERSION' must be a minor version like 1.4, not a full version."; exit 1; }
+
+          BRANCH="release/$VERSION"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "::error::$BRANCH already exists. To patch it, run the hotfix workflow instead."
+            exit 1
+          fi
+
+          git checkout -b "$BRANCH"
+          git push origin "$BRANCH"
+          echo "::notice::Cut $BRANCH from main at $(git rev-parse --short HEAD)"
+          echo "Next: fixes go to $BRANCH by pull request. When it is ready, tag v$VERSION.0."

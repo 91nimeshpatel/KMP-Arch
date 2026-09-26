@@ -1,0 +1,250 @@
+# The gate every change passes before it can merge (docs/CONTRIBUTING.md):
+#   pr-title  · the PR title is a Conventional Commit
+#   verify    · ktlint, detekt, architecture rules, unit tests, coverage floor, Android build
+#   ios       · the shared code compiles, links and tests on Apple targets
+#   e2e       · the Appium scenarios, on an emulator
+# `verify` runs on Linux because it is three times cheaper in Actions minutes; only the Apple
+# targets need a macOS runner.
+name: ci
+
+# A change to CLAUDE.md, a rule, a skill, an agent or a hook steers every future session, so it is
+# regression-tested exactly like code: the `verify` job runs the architecture rules, which check that
+# the documents and the configuration still agree with the repository.
+on:
+  pull_request:
+    branches: [main, 'release/**']
+  push:
+    branches: [main, 'release/**']
+  workflow_call:
+  # Actions > ci > Run workflow: the full gate, including E2E, on any branch, on demand.
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  # Gradle on CI: no daemon reuse to worry about, and a stack trace when something fails.
+  GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g -Dfile.encoding=UTF-8
+
+jobs:
+  pr-title:
+    name: PR title (Conventional Commits)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            test
+            docs
+            chore
+            ci
+            build
+            revert
+          requireScope: false
+          # No lower-case rule: proper nouns start many legitimate subjects ("Compose", "Xcode").
+          # The subject only has to be non-empty and not end in a period.
+          subjectPattern: ^(?!.*\.$).+$
+          subjectPatternError: >-
+            The subject "{subject}" must not be empty or end with a period, e.g. "feat: add a profile screen".
+
+  verify:
+    name: Static analysis · unit tests · Android build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-android
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: ktlint + detekt
+        run: ./gradlew ktlintCheck detekt --continue
+
+      - name: Architecture rules
+        run: ./gradlew :architecture-tests:test
+
+      - name: Unit tests on the JVM + coverage floor
+        # `testAndroidHostTest` runs every module's commonTest on the JVM. Not `allTests`: the
+        # Apple targets need a macOS runner and run in the `ios` job.
+        run: ./gradlew testAndroidHostTest koverXmlReport koverVerify
+
+      - name: Test report
+        uses: mikepenz/action-junit-report@v6
+        if: ${{ !cancelled() }}
+        with:
+          report_paths: '**/build/test-results/**/TEST-*.xml'
+          check_name: Unit tests
+          detailed_summary: true
+
+      - name: The scaffolder still produces a feature that passes
+        # tools/new-feature.py writes Kotlin by hand, so it rots the moment the codebase moves — a
+        # renamed package, a deprecated Compose API. Its first version was wrong three times over
+        # exactly that. Checking it here is cheap; the alternative is someone discovering it months
+        # later, mid-task.
+        if: ${{ !cancelled() }}
+        run: tools/test-new-feature.sh
+
+      - name: Build the Android app
+        run: ./gradlew :androidApp:assembleDebug
+
+      - name: Upload the debug APK (input for the E2E job)
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-debug-apk
+          path: androidApp/build/outputs/apk/debug/androidApp-debug.apk
+          retention-days: 7
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: reports
+          path: |
+            **/build/reports/ktlint/**/*.txt
+            **/build/reports/detekt/
+            **/build/reports/tests/
+            **/build/reports/kover/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  ios:
+    name: iOS framework · Apple tests
+    # macOS minutes cost ten times a Linux minute, so this job does only what needs a Mac.
+    runs-on: macos-15
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-android
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+          konan: 'true'
+
+      - name: Unit tests on the iOS simulator target
+        run: ./gradlew iosSimulatorArm64Test
+
+      - name: Link the framework the Xcode project consumes
+        run: ./gradlew :composeApp:linkDebugFrameworkIosSimulatorArm64
+
+      - name: Build the iOS app
+        # -destination without a device id builds for any simulator, so the job does not depend on
+        # which runtimes this runner image happens to have installed.
+        run: |
+          xcodebuild build \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: ios-reports
+          path: '**/build/reports/tests/'
+          retention-days: 7
+          if-no-files-found: ignore
+
+  e2e:
+    # An emulator run costs roughly 25 minutes of the Actions budget, so it is reserved for the
+    # branches a release comes from, plus any PR labelled `run-e2e`.
+    name: Appium E2E (Android emulator)
+    needs: verify
+    if: >-
+      startsWith(github.ref, 'refs/heads/release/') ||
+      startsWith(github.base_ref, 'release/') ||
+      contains(github.event.pull_request.labels.*.name, 'run-e2e') ||
+      github.event_name == 'workflow_call' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-android
+        with:
+          cache-read-only: true
+
+      - name: Download the APK built by `verify`
+        uses: actions/download-artifact@v8
+        with:
+          name: android-debug-apk
+          path: build-output
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/e2e/requirements.txt
+
+      - name: Install Appium and the UiAutomator2 driver
+        run: |
+          npm install -g appium@3
+          appium driver install uiautomator2
+
+      - name: Free disk space for the emulator
+        # The runner has a few gigabytes free after the SDK and Gradle caches; the AVD needs its
+        # data partition plus headroom, so drop toolchains this job never uses.
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+            "$AGENT_TOOLSDIRECTORY/CodeQL" /usr/local/lib/android/sdk/ndk || true
+          df -h /
+
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # Each line of `script` runs in its own `sh -c`, so the whole run must be one line:
+      # tools/e2e/run.sh starts Appium, stops it on exit, and passes the rest to pytest.
+      # --timeout overrides pytest.ini: waits are scaled up on CI (tools/e2e/pages/base.py).
+      - name: Run the scenarios
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          disk-size: 4096M
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: E2E_APK="$PWD/build-output/androidApp-debug.apk" tools/e2e/run.sh --timeout=900
+
+      - name: Upload failure artifacts
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: e2e-artifacts
+          path: |
+            tools/e2e/artifacts/
+            tools/e2e/appium.log
+          retention-days: 7
+          if-no-files-found: ignore
