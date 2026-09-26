@@ -14,7 +14,7 @@ import org.gradle.api.initialization.Settings
  * It registers one task and changes nothing else. Applying a plugin should not rewrite someone's
  * repository; `adoptArch` does that, and only after listing what it would touch.
  */
-class StandardsPlugin : Plugin<Settings> {
+class ArchPlugin : Plugin<Settings> {
     override fun apply(settings: Settings) {
         settings.gradle.rootProject {
             tasks.register("adoptArch", AdoptArchTask::class.java) {

@@ -52,7 +52,7 @@ PATHS=(
 stale=()
 for path in "${PATHS[@]}"; do
   src="$TEMPLATE/$path"
-  dst="standards/$path"
+  dst="arch/$path"
   [[ -e "$src" ]] || { echo "  missing in template: $path" >&2; continue; }
 
   if $CHECK; then
@@ -80,8 +80,8 @@ done
 
 if $CHECK; then
   # The Gradle plugin's resources are a copy of the npm bundle; they drift the same way.
-  if ! diff -rq --exclude=MANIFEST standards "gradle-plugin/src/main/resources/standards" >/dev/null 2>&1; then
-    stale+=("gradle-plugin/src/main/resources/standards")
+  if ! diff -rq --exclude=MANIFEST arch "gradle-plugin/src/main/resources/arch" >/dev/null 2>&1; then
+    stale+=("gradle-plugin/src/main/resources/arch")
   fi
   if (( ${#stale[@]} )); then
     printf 'Stale bundled files:\n'; printf '  %s\n' "${stale[@]}"
@@ -96,7 +96,7 @@ fi
 # neither, so the header and the pointer are re-applied after every sync.
 python3 - <<'PY'
 from pathlib import Path
-p = Path("standards/CLAUDE.md"); s = p.read_text(encoding="utf-8")
+p = Path("arch/CLAUDE.md"); s = p.read_text(encoding="utf-8")
 header = """<!--
   This file is installed by `./gradlew adoptArch` and is REPLACED on every update.
   Do not edit it. Anything specific to this project goes in .claude/project.md, which the plugin
@@ -117,10 +117,10 @@ PY
 # from the template again, so the two artifacts cannot disagree about what the standards are: there
 # is one place they are assembled, and both read from it.
 echo "==> mirroring into the Gradle plugin's resources"
-RESOURCES="gradle-plugin/src/main/resources/standards"
+RESOURCES="gradle-plugin/src/main/resources/arch"
 rm -rf "$RESOURCES"
 mkdir -p "$RESOURCES"
-cp -R standards/. "$RESOURCES/"
+cp -R arch/. "$RESOURCES/"
 find "$RESOURCES" -type f | sed "s|$RESOURCES/||" | sort > "$RESOURCES/MANIFEST"
 echo "    $(wc -l < "$RESOURCES/MANIFEST" | xargs) files"
 

@@ -55,7 +55,7 @@ these standards. This plugin is for projects that exist, and for updating the st
 
 ## Keeping the bundle honest
 
-`standards/` is a copy of files that live, and are exercised by a real build, in the template.
+`arch/` is a copy of files that live, and are exercised by a real build, in the template.
 A copy drifts, so it is refreshed by a script rather than by hand:
 
 ```bash
@@ -63,7 +63,7 @@ tools/sync-from-template.sh              # refresh from ../KMP Template
 tools/sync-from-template.sh --check      # fail if anything is stale
 ```
 
-The plugin's resources are mirrored from `standards/` by the same script, and `--check` compares
+The plugin's resources are mirrored from `arch/` by the same script, and `--check` compares
 those too. `VERSION` is the single version, read by the plugin build.
 
 ## Releasing

@@ -30,7 +30,7 @@ gradlePlugin {
     plugins {
         create("standards") {
             id = "io.github.mrlonewolfer.kmp.arch"
-            implementationClass = "io.github.mrlonewolfer.kmp.arch.StandardsPlugin"
+            implementationClass = "io.github.mrlonewolfer.kmp.arch.ArchPlugin"
             displayName = "KMP engineering standards"
             description =
                 "Installs a Kotlin Multiplatform project's shared engineering standards: the " +

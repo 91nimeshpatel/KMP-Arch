@@ -11,7 +11,7 @@ import re
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent / "standards"
+ROOT = Path(__file__).resolve().parent.parent / "arch"
 
 # Paths a project writes for itself. A skill names these precisely because they are not shared.
 PROJECT_OWNED = {

@@ -160,7 +160,7 @@ abstract class AdoptArchTask : DefaultTask() {
     }
 
     private companion object {
-        const val BUNDLE = "standards"
+        const val BUNDLE = "arch"
         const val PROJECT_OWNED = ".claude/project.md"
         val NEXT_STEPS = """
             Next:
