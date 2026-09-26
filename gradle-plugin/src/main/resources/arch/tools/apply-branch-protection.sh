@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 mrlonewolfer. MIT Licence. https://github.com/mrlonewolfer/KMP-Arch
 # Apply this project's branch rules to the GitHub repository.
 #
 #   tools/apply-branch-protection.sh              # the current repo's origin

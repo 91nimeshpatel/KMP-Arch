@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 mrlonewolfer. MIT Licence. https://github.com/mrlonewolfer/KMP-Arch
 """Create a feature module, wired up and ready to build.
 
 Like the New Project wizard, but for this architecture: it writes the module, a screen split into a

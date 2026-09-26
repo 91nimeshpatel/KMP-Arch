@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 mrlonewolfer. MIT Licence. https://github.com/mrlonewolfer/KMP-Arch
 # Proves the scaffolder still generates a feature that passes the gate.
 #
 # The generator writes Kotlin by hand, so it drifts the moment the codebase moves: a renamed

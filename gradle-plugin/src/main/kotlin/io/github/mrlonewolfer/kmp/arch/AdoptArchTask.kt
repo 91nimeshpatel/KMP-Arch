@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2026 mrlonewolfer
+ *
+ * Licensed under the MIT License. See the LICENSE file in the project root for the full text.
+ * https://github.com/mrlonewolfer/KMP-Arch
+ */
 package io.github.mrlonewolfer.kmp.arch
 
 import org.gradle.api.DefaultTask

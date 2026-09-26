@@ -43,6 +43,45 @@ gradlePlugin {
     }
 }
 
+// Ownership and licence, written into the published artifact rather than only into a file in the
+// repository. A jar on a public registry travels without its repository: whoever ends up holding it
+// should be able to read who wrote it and on what terms, from the artifact itself.
+afterEvaluate {
+    publishing.publications.withType<MavenPublication>().configureEach {
+        pom {
+            name = "KMP Arch"
+            description =
+                "Engineering standards for Kotlin Multiplatform projects, installed by one Gradle " +
+                "task: architecture rules that run as tests, CI and release workflows, agent rules " +
+                "and skills, and feature-module scaffolding."
+            url = "https://github.com/mrlonewolfer/KMP-Arch"
+            inceptionYear = "2026"
+
+            licenses {
+                license {
+                    name = "MIT License"
+                    url = "https://github.com/mrlonewolfer/KMP-Arch/blob/main/LICENSE"
+                    distribution = "repo"
+                }
+            }
+
+            developers {
+                developer {
+                    id = "mrlonewolfer"
+                    name = "mrlonewolfer"
+                    url = "https://github.com/mrlonewolfer"
+                }
+            }
+
+            scm {
+                url = "https://github.com/mrlonewolfer/KMP-Arch"
+                connection = "scm:git:https://github.com/mrlonewolfer/KMP-Arch.git"
+                developerConnection = "scm:git:ssh://git@github.com/mrlonewolfer/KMP-Arch.git"
+            }
+        }
+    }
+}
+
 // Declared because it is true and was checked, not because the Portal asks: the task reaches for
 // the project directory when it is created rather than while it runs, and two identical runs
 // report "Configuration cache entry reused".

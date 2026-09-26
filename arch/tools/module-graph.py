@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 mrlonewolfer. MIT Licence. https://github.com/mrlonewolfer/KMP-Arch
 """Generate the module dependency graph from the build files.
 
 The graph used to be written by hand in three places. Three hand-maintained copies of one fact
