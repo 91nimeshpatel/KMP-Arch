@@ -67,6 +67,10 @@ jobs:
       - name: A real project can adopt the standards
         # The only check that proves the thing works: publish locally, apply it to an empty project,
         # and count what lands. Everything else tests the parts.
+        #
+        # It runs with the configuration cache on and problems=fail, because the plugin now tells
+        # the Portal it supports the configuration cache and Isolated Projects. A declaration that
+        # nothing re-checks is how 1.0.0 went out claiming the opposite of what it shipped.
         run: |
           cd gradle-plugin && ./gradlew publishToMavenLocal -q && cd ..
           mkdir -p /tmp/adopt && cd /tmp/adopt
@@ -77,12 +81,46 @@ jobs:
           pluginManagement { repositories { mavenLocal(); gradlePluginPortal() } }
           plugins { id("io.github.91nimeshpatel.kmp.arch") version "$VERSION" }
           rootProject.name = "adopt"
+          include(":app", ":core-a")
           EOF
-          ./gradlew adoptArch --apply
+          mkdir -p app core-a
+          echo 'plugins { base }' > app/build.gradle.kts
+          echo 'plugins { base }' > core-a/build.gradle.kts
+          cat > gradle.properties <<'EOF'
+          org.gradle.configuration-cache=true
+          org.gradle.configuration-cache.problems=fail
+          EOF
+          ./gradlew adoptArch --apply --isolated-projects
           test -f CLAUDE.md
           test -f .claude/settings.json
           test -f .claude/skills/add-a-feature/SKILL.md
           test -f docs/ADDING_A_FEATURE.md
           test -f architecture-tests/src/test/kotlin/LayerDependencyTest.kt
           test -x tools/new-feature.py
-          echo "adopted $(find . -type f -not -path './gradle/*' -not -path './.gradle/*' | wc -l) files"
+          # Counts only what adoptArch wrote, so the number printed here is the same number the
+          # task reports. Counting the scaffolding too would inflate it by three and quietly make
+          # this line disagree with the tool it is checking.
+          echo "adopted $(find . -type f \
+            -not -path './gradle/*' -not -path './.gradle/*' \
+            -not -path './app/*' -not -path './core-a/*' \
+            -not -name gradlew -not -name settings.gradle.kts -not -name gradle.properties \
+            | wc -l) files"
+
+      - name: The declared feature compatibility is true and is in the artifact
+        # Two separate claims, so two separate checks: that a second run really reuses the entry,
+        # and that the descriptor the Portal reads actually says so. 1.0.0 shipped UNDECLARED while
+        # a comment in the build script claimed it was declared.
+        run: |
+          cd /tmp/adopt
+          ./gradlew adoptArch --apply --isolated-projects 2>&1 | tee rerun.log
+          grep -q 'Configuration cache entry reused' rerun.log \
+            || { echo "::error::The entry was not reused, so the declaration is false"; exit 1; }
+          VERSION=$(cat "$GITHUB_WORKSPACE/VERSION")
+          JAR="$HOME/.m2/repository/io/github/91nimeshpatel/kmp-arch-gradle-plugin/$VERSION/kmp-arch-gradle-plugin-$VERSION.jar"
+          DESC=$(unzip -p "$JAR" 'META-INF/gradle-plugins/io.github.91nimeshpatel.kmp.arch.properties')
+          echo "$DESC"
+          for feature in configuration-cache isolated-projects; do
+            echo "$DESC" | grep -q "compatibility.feature.$feature=DECLARED_SUPPORTED" \
+              || { echo "::error::$feature is not declared in the published descriptor"; exit 1; }
+          done
+          echo "both features declared and proven"

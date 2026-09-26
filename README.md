@@ -10,7 +10,7 @@ modules, and the instructions an AI agent reads before it touches your code.
 
 ```kotlin
 // settings.gradle.kts
-plugins { id("io.github.91nimeshpatel.kmp.arch") version "1.0.0" }
+plugins { id("io.github.91nimeshpatel.kmp.arch") version "1.0.1" }
 ```
 
 ```bash

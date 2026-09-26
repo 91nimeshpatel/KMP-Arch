@@ -1,3 +1,5 @@
+import org.gradle.plugin.compatibility.compatibility
+
 plugins {
     `kotlin-dsl`
     id("com.gradle.plugin-publish") version "2.2.1"
@@ -17,8 +19,8 @@ publishing {
     }
 }
 
-// One version for the whole repository: the npm package and this plugin are released together, so
-// a consumer never has to work out which pair of versions belong to each other.
+// One version for the whole repository: the bundled files under arch/ and the plugin that installs
+// them ship as one thing, so a consumer never has to match two versions against each other.
 version = providers.fileContents(
     rootProject.layout.projectDirectory.file("../VERSION"),
 ).asText.get().trim()
@@ -43,6 +45,18 @@ gradlePlugin {
                 "feature module. Apply it in settings.gradle.kts and run `./gradlew " +
                 "adoptArch`; it reports every file it would write before writing anything."
             tags = listOf("kotlin-multiplatform", "kmp", "android", "conventions", "architecture")
+
+            // Both were checked before being claimed, on a single-module and a three-module build
+            // with org.gradle.configuration-cache.problems=fail: `adoptArch` and `adoptArch
+            // --apply` each store an entry and reuse it on the next run, under --isolated-projects
+            // too. The task reads the project directory when it is created rather than while it
+            // runs, which is what makes this true; keep it that way.
+            compatibility {
+                features {
+                    configurationCache.set(true)
+                    isolatedProjects.set(true)
+                }
+            }
         }
     }
 }
@@ -86,9 +100,9 @@ afterEvaluate {
     }
 }
 
-// Declared because it is true and was checked, not because the Portal asks: the task reaches for
-// the project directory when it is created rather than while it runs, and two identical runs
-// report "Configuration cache entry reused".
+// This is about the Portal's own publish task, not about this plugin: it opens a network
+// connection, so it cannot be cached. The plugin's own compatibility is declared above, which is
+// the thing the Portal's "consider declaring compatibility" message is asking for.
 tasks.withType<com.gradle.publish.PublishTask>().configureEach {
     notCompatibleWithConfigurationCache("The publish task talks to the Gradle Plugin Portal.")
 }
