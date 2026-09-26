@@ -97,7 +97,14 @@ jobs:
           test -f docs/ADDING_A_FEATURE.md
           test -f architecture-tests/src/test/kotlin/LayerDependencyTest.kt
           test -x tools/new-feature.py
-          echo "adopted $(find . -type f -not -path './gradle/*' -not -path './.gradle/*' -not -path './app/*' -not -path './core-a/*' | wc -l) files"
+          # Counts only what adoptArch wrote, so the number printed here is the same number the
+          # task reports. Counting the scaffolding too would inflate it by three and quietly make
+          # this line disagree with the tool it is checking.
+          echo "adopted $(find . -type f \
+            -not -path './gradle/*' -not -path './.gradle/*' \
+            -not -path './app/*' -not -path './core-a/*' \
+            -not -name gradlew -not -name settings.gradle.kts -not -name gradle.properties \
+            | wc -l) files"
 
       - name: The declared feature compatibility is true and is in the artifact
         # Two separate claims, so two separate checks: that a second run really reuses the entry,
