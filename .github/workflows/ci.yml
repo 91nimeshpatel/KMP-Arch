@@ -55,6 +55,19 @@ jobs:
           fi
           echo "no conflict markers"
 
+      - name: The bundle carries no project-specific package
+        # The leak guard inside sync-from-template.sh --check only runs when the private template
+        # can be checked out, which on this repository's own token it cannot — so that step is
+        # skipped and the guard with it. This one always runs. The literal is deliberate: it is a
+        # negative assertion about a specific string that must never ship, not a general rule.
+        run: |
+          if grep -rnI --exclude-dir=.git --exclude=MANIFEST -e 'com\.vidmira' \
+               arch gradle-plugin/src/main/resources/arch; then
+            echo "::error::The template's own package reached the bundle. Re-run tools/sync-from-template.sh."
+            exit 1
+          fi
+          echo "no project-specific package in the bundle"
+
       - name: The README agrees with the repository
         run: python3 tools/check-readme.py
 
