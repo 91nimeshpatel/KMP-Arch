@@ -73,14 +73,15 @@ large enough to own its build. Do not create a module for a single class.
 
 ### Platform code
 
-Every `expect`/`actual` lives in `:core:platform`, behind an interface. Two documented exceptions,
-both because the library's own API differs per platform:
+Every `expect`/`actual` lives in `:core:platform`, behind an interface. One documented exception:
+`:core:database`, because Room's own API differs per platform — its builder needs a `Context` on
+Android and not on iOS, and its KSP compiler generates the `actual`s for `@ConstructedBy`, so there
+is no hand-written code to move.
 
-- `:core:database` — Room's builder needs a `Context` on Android and not on iOS.
-- `TemplateDatabaseConstructor` — Room's KSP compiler generates the `actual`s.
-
-Both are listed in `LayerDependencyTest.EXPECT_EXCEPTIONS`. Adding a third needs the same
-justification, in writing.
+`LayerDependencyTest` allows `expect` in `:core:platform` and `:core:database` and nowhere else. It
+matches on the module path rather than on a list of file names, so the rule means the same thing in
+every project that adopts it. A seam anywhere else needs the same justification, in writing, in
+`.claude/project.md`.
 
 ### Kotlin style
 
