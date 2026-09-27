@@ -26,16 +26,18 @@ A green build says nothing about any of these. Only running the app does.
 ```bash
 ./gradlew qualityCheck && ./gradlew allTests
 ./gradlew :androidApp:installDebug
-adb shell pm clear com.vidmira.kmptemplate
-adb shell am start -n com.vidmira.kmptemplate/.MainActivity
+APP_ID=...   # this project's applicationId - gradle.properties or androidApp/build.gradle.kts
+adb shell pm clear "$APP_ID"
+adb shell am start -n "$APP_ID/.MainActivity"
 adb shell screencap -p /sdcard/s.png && adb pull /sdcard/s.png <path>
 ```
 
 ```bash
 xcodebuild build -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug \
   -destination 'generic/platform=iOS Simulator' -derivedDataPath build/ios CODE_SIGNING_ALLOWED=NO
-xcrun simctl install booted "$(ls -d build/ios/Build/Products/Debug-iphonesimulator/*.app | head -1)"
-xcrun simctl launch booted com.vidmira.kmptemplate
+APP=$(ls -d build/ios/Build/Products/Debug-iphonesimulator/*.app | head -1)
+xcrun simctl install booted "$APP"
+xcrun simctl launch booted "$(plutil -extract CFBundleIdentifier raw "$APP/Info.plist")"
 xcrun simctl io booted screenshot <path>
 ```
 

@@ -55,6 +55,19 @@ jobs:
           fi
           echo "no conflict markers"
 
+      - name: The bundle carries no project-specific package
+        # The leak guard inside sync-from-template.sh --check only runs when the private template
+        # can be checked out, which on this repository's own token it cannot — so that step is
+        # skipped and the guard with it. This one always runs. The literal is deliberate: it is a
+        # negative assertion about a specific string that must never ship, not a general rule.
+        run: |
+          if grep -rnI --exclude-dir=.git --exclude=MANIFEST -e 'com\.vidmira' \
+               arch gradle-plugin/src/main/resources/arch; then
+            echo "::error::The template's own package reached the bundle. Re-run tools/sync-from-template.sh."
+            exit 1
+          fi
+          echo "no project-specific package in the bundle"
+
       - name: The README agrees with the repository
         run: python3 tools/check-readme.py
 
@@ -124,3 +137,49 @@ jobs:
               || { echo "::error::$feature is not declared in the published descriptor"; exit 1; }
           done
           echo "both features declared and proven"
+
+      - name: The shipped architecture rules bite in someone else's package
+        # 1.0.1 shipped two rules that matched imports against the template's own package, so in
+        # every adopting project they ran over an empty set and passed while checking nothing.
+        # This adopts the plugin into a project rooted at com.acme.app, plants a real violation,
+        # and requires the rule to FAIL. A rule that cannot fail here is not a rule.
+        run: |
+          cd /tmp/adopt
+          cat > gradle/libs.versions.toml <<'EOF'
+          [versions]
+          kotlin = "2.4.20"
+          konsist = "0.17.3"
+          [libraries]
+          konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
+          [plugins]
+          kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+          EOF
+          printf '\ninclude(":architecture-tests")\n' >> settings.gradle.kts
+          # An adopted project declares no dependency repositories of its own, and the
+          # architecture-tests module needs Konsist and kotlin-stdlib. Prepended with cat rather
+          # than `sed -i '1i'`, whose syntax differs between GNU and BSD sed.
+          grep -q 'mavenCentral' settings.gradle.kts || {
+            printf 'dependencyResolutionManagement { repositories { mavenCentral() } }\n' \
+              | cat - settings.gradle.kts > settings.new && mv settings.new settings.gradle.kts
+          }
+          mkdir -p feature/alpha/src/commonMain/kotlin/com/acme/app/feature/alpha
+          mkdir -p feature/beta/src/commonMain/kotlin/com/acme/app/feature/beta
+          printf 'package com.acme.app.feature.beta\n\nclass BetaThing\n' \
+            > feature/beta/src/commonMain/kotlin/com/acme/app/feature/beta/BetaThing.kt
+          printf 'package com.acme.app.feature.alpha\n\nimport com.acme.app.feature.beta.BetaThing\n\nclass AlphaScreen(private val other: BetaThing)\n' \
+            > feature/alpha/src/commonMain/kotlin/com/acme/app/feature/alpha/AlphaScreen.kt
+
+          if ./gradlew :architecture-tests:test --tests '*LayerDependencyTest*' > rules.log 2>&1; then
+            echo "::error::A feature imports another feature and the rule passed - it is checking nothing"
+            tail -30 rules.log
+            exit 1
+          fi
+          grep -q 'a feature never depends on another feature' rules.log \
+            || { echo "::error::The build failed, but not for the reason under test"; tail -30 rules.log; exit 1; }
+          echo "the shipped rule caught the violation"
+
+          # and it must go green again once the violation is gone, or it is just noise
+          rm -rf feature/alpha feature/beta
+          ./gradlew :architecture-tests:test --tests '*LayerDependencyTest*' \
+            || { echo "::error::The rule fails on clean code"; exit 1; }
+          echo "clean code still passes"

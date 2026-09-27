@@ -30,7 +30,7 @@ plugins {
 }
 
 kotlin {
-    android { namespace = "com.vidmira.kmptemplate.feature.profile" }
+    android { namespace = "com.example.app.feature.profile" }
     sourceSets {
         commonMain.dependencies {
             // only what this feature needs beyond what kmp.feature already provides

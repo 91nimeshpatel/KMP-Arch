@@ -8,12 +8,26 @@ import kotlin.test.Test
  * Konsist reads the repository's Kotlin files and asserts on their imports, so these rules hold for
  * every module without each one having to police itself.
  *
+ * Every rule here keys off the module layout — `/feature/<name>/`, `/core/<name>/` — and never off
+ * a package name, because this file ships to other people's projects. A rule written against one
+ * project's package matches nothing in anyone else's, and `imports.none { … }` over an empty set
+ * is true: the test would pass while checking nothing, which is the failure it exists to prevent.
+ *
  * When one of these fails, the fix is almost never to change the rule: it is to move the code to
  * the layer it belongs in.
  */
 class LayerDependencyTest {
     /** Every Kotlin file in the repository, ignoring generated output. */
     private val sources = Konsist.scopeFromProject()
+
+    /**
+     * The feature names this project actually has, read from its directories.
+     *
+     * An import is only judged against these, so a third-party package that happens to contain
+     * `.feature.` cannot be mistaken for one of ours.
+     */
+    private val featureNames: Set<String> =
+        sources.files.mapNotNull { FEATURE_PATH.find(it.path)?.groupValues?.get(1) }.toSet()
 
     @Test
     fun `a feature never depends on another feature`() {
@@ -22,8 +36,8 @@ class LayerDependencyTest {
             .assertTrue(testName = "a feature never imports another feature") { file ->
                 val ownFeature = FEATURE_PATH.find(file.path)?.groupValues?.get(1)
                 file.imports.none { import ->
-                    import.name.startsWith(FEATURE_PACKAGE) &&
-                        !import.name.startsWith("$FEATURE_PACKAGE.$ownFeature.")
+                    val imported = IMPORTED_FEATURE.find(import.name)?.groupValues?.get(1)
+                    imported != null && imported in featureNames && imported != ownFeature
                 }
             }
     }
@@ -46,11 +60,7 @@ class LayerDependencyTest {
         sources.files
             .filter { it.path.contains("/feature/") || it.path.contains("/core/domain/") }
             .assertTrue(testName = "features and use cases go through a repository") { file ->
-                file.imports.none { import ->
-                    import.name.startsWith("com.vidmira.kmptemplate.core.database.") ||
-                        import.name.startsWith("com.vidmira.kmptemplate.core.network.") ||
-                        import.name.startsWith("com.vidmira.kmptemplate.core.datastore.")
-                }
+                file.imports.none { import -> IMPORTED_DATA_SOURCE.containsMatchIn(import.name) }
             }
     }
 
@@ -71,28 +81,24 @@ class LayerDependencyTest {
     fun `platform code stays in core platform`() {
         sources.files
             .filter { it.text.contains("\nexpect ") || it.text.contains("\ninternal expect ") }
-            .assertTrue(testName = "expect declarations live in :core:platform, or a documented exception") { file ->
-                file.path.contains("/core/platform/") ||
-                    EXPECT_EXCEPTIONS.any { allowed -> file.path.endsWith(allowed) }
+            .assertTrue(testName = "expect declarations live in :core:platform, or :core:database for Room") { file ->
+                file.path.contains("/core/platform/") || file.path.contains("/core/database/")
             }
     }
 
     private companion object {
+        /** `/feature/profile/` -> `profile`, from a file's path. */
         val FEATURE_PATH = Regex("/feature/([^/]+)/")
-        const val FEATURE_PACKAGE = "com.vidmira.kmptemplate.feature"
+
+        /** `com.anything.feature.profile.ProfileScreen` -> `profile`, from an import. */
+        val IMPORTED_FEATURE = Regex("""\.feature\.([^.]+)\.""")
 
         /**
-         * The two places outside `:core:platform` that declare an `expect`.
+         * An import that reaches straight into a data source, whatever the root package is.
          *
-         * Room's builder signature differs per platform (Android's overload needs a `Context`), so
-         * the seam has to sit next to the database; and Room's KSP compiler generates the `actual`s
-         * for `@ConstructedBy`, so there is no hand-written code to move. Documented in
-         * .claude/rules/architecture.md; any addition here needs the same written justification.
+         * The module names are the ones the standards define, so matching them is matching the
+         * standard rather than any one project.
          */
-        val EXPECT_EXCEPTIONS =
-            setOf(
-                "core/database/src/commonMain/kotlin/com/vidmira/kmptemplate/core/database/DatabaseFactory.kt",
-                "core/database/src/commonMain/kotlin/com/vidmira/kmptemplate/core/database/TemplateDatabase.kt",
-            )
+        val IMPORTED_DATA_SOURCE = Regex("""\.core\.(database|network|datastore)\.""")
     }
 }
