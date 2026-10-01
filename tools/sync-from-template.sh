@@ -49,6 +49,7 @@ PATHS=(
   .claude/settings.json
   docs/ADDING_A_FEATURE.md
   docs/TESTING.md
+  docs/RELEASE_PLAN.md
   docs/intents/TEMPLATE.md
   docs/intents/TEMPLATE-spec.md
   docs/intents/README.md
@@ -63,6 +64,7 @@ PATHS=(
   tools/apply-branch-protection.sh
   tools/new-feature.py
   tools/test-new-feature.sh
+  tools/release/release.sh
 )
 
 TMPCMP=$(mktemp -d)

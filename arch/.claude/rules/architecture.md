@@ -46,6 +46,17 @@ The local database owns the data. The network writes into it; the UI reads from 
 therefore reaches the screen through the database's `Flow`, never as a return value
 (`OfflineFirstGreetingRepository`).
 
+### Work that must outlive a screen
+
+`viewModelScope` ends when the user leaves the screen, and everything launched in it is cancelled.
+A download, a sync or a write the user expects to finish anyway (switching language and leaving
+Settings, for example) runs in an **application-wide scope owned by the repository**:
+`externalScope.async { … }.await()`, with the scope (`SupervisorJob()` + the IO dispatcher)
+injected from DI so a test can pass its own. The caller still awaits the result; leaving only
+stops the waiting, not the work. A test proves it: start the work, cancel the caller, and check
+the work still completed. (An app built from this template lost a language's audio download this
+way: the sync ran in the Settings screen's scope.)
+
 ### Modules
 
 | Module | Holds | May depend on | Must never depend on |

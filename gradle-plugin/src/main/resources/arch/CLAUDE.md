@@ -17,12 +17,12 @@ documentation of a library disagree, stop and report the conflict instead of gue
 ## Start here: read `docs/` before you touch anything
 
 **This file is loaded for you automatically, and so are the path-scoped rules in `.claude/rules/`
-whenever you open a file they cover. The five documents in `docs/` are not — open and read them
+whenever you open a file they cover. The six documents in `docs/` are not — open and read them
 yourself, at the start of the task, before writing any code.** They are what tells you what this
 project is, how it is built, and what has already been decided. An agent that skips them re-decides
 settled questions, reinvents the recipe, and rediscovers traps that cost someone else a day.
 
-Read all five on any non-trivial task. On a one-line fix, read at least the one that governs the
+Read all six on any non-trivial task. On a one-line fix, read at least the one that governs the
 file you are changing.
 
 | Document | Read it to learn |
@@ -32,6 +32,7 @@ file you are changing.
 | [`docs/ADDING_A_FEATURE.md`](docs/ADDING_A_FEATURE.md) | the step-by-step recipe for a screen, module, ViewModel or string — follow it rather than inventing one |
 | [`docs/TESTING.md`](docs/TESTING.md) | what to test, which source set it belongs in, and what will silently not run |
 | [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) | branch names, commit and pull-request format, and what a reviewer will check |
+| [`docs/RELEASE_PLAN.md`](docs/RELEASE_PLAN.md) | how a change reaches users: the branch model, the release cut, tags and versions, hotfixes, and the release pipelines |
 
 ### Cross-check them against the code, and against each other
 
@@ -58,7 +59,7 @@ thought to go looking:
 | `.claude/rules/dependencies.md` | the version catalog, any `build.gradle.kts`, `build-logic/**` |
 | `.claude/rules/code-style.md` | any `.kt`/`.kts`, any `strings.xml`, any `composeResources/**` |
 | `.claude/rules/testing.md` | any test source, `architecture-tests/**`, `tools/e2e/**` |
-| `.claude/rules/contributing.md` | `.github/**`, any `.md` |
+| `.claude/rules/contributing.md` | `.github/**`, any `.md`, `tools/release/**` |
 
 Procedures are **skills**, which load when the work matches them, and cost nothing until then:
 
@@ -68,17 +69,19 @@ Procedures are **skills**, which load when the work matches them, and cost nothi
 | `.claude/skills/add-a-feature` | adding a screen, module, ViewModel or user-visible string |
 | `.claude/skills/capture-intent` | someone describes a want or a problem and no `intent.md` exists yet |
 | `.claude/skills/write-a-spec` | an intent is accepted and someone asks what it would take to build |
+| `.claude/skills/release-a-version` | releasing, uploading or submitting a build to any store, or changing a version |
 
 One **subagent** is defined, in `.claude/agents/verifier.md`. It builds, installs and runs both apps
 and reports what it saw. Use it before calling any UI or wiring change done — its verdict is worth
 having precisely because it did not write the code.
 
-Two **hooks** enforce what prose cannot, configured in `.claude/settings.json`:
+Three **hooks** enforce what prose cannot, configured in `.claude/settings.json`:
 
 | Hook | Fires |
 |---|---|
 | `catalog-changed.py` | after you edit `gradle/libs.versions.toml`, naming the versions now missing from `docs/LIBRARIES.md` |
 | `docs-gate.py` | when you try to finish a turn while a document contradicts the code |
+| `release-guard.py` | before a shell command that would make a store build (signed bundle, Xcode archive, export or upload) outside `tools/release/release.sh` |
 
 The division is deliberate: **a skill makes a mistake rare, a test makes it visible, and a hook makes
 it close to impossible.** Anything a machine can check is checked (§1.10).
@@ -114,6 +117,7 @@ Three things are true of every task, and they are the ones most often skipped:
    | change a layer, a seam or a dependency direction | `docs/ARCHITECTURE.md` — and the reasoning, not just the diagram |
    | write or move a test | `docs/TESTING.md` — what goes where, and what will not run |
    | open a pull request | `docs/CONTRIBUTING.md` — branch, title and description format |
+   | cut a release, tag, build for a store or change a version | `docs/RELEASE_PLAN.md` — then follow `.claude/skills/release-a-version` |
 
    If what you find in the code contradicts what a document says, **stop and report it** rather than
    picking one. One of the two is wrong, and guessing which is how a repository ends up with
@@ -198,6 +202,8 @@ checklist. Work through it and tick only what you actually checked:
 | adds a capability a newcomer would look for | `README.md` — the "What is in the box" table |
 | changes where tests live or how they run | `docs/TESTING.md` |
 | changes the recipe for a new screen | `docs/ADDING_A_FEATURE.md` |
+| changes how a version is cut, tagged, built or released | `docs/RELEASE_PLAN.md`, `.claude/skills/release-a-version`, `tools/release/release.sh` |
+| adds a rule, skill or hook | `CLAUDE.md` — its table (rules, skills or hooks), and `.claude/settings.json` for a hook. Enforced by `AgentWiringTest`. |
 
 A document that has drifted is worse than no document: the next person trusts it, and it lies to
 them. If a change makes a document wrong and you cannot fix it now, say so in the pull request

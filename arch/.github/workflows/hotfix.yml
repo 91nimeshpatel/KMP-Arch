@@ -49,6 +49,6 @@ jobs:
             1. Write a test that fails because of the bug, and commit it first.
             2. Fix the code until that test passes. Do not change the test.
             3. Open a pull request into $BASE. The usual checks apply.
-            4. Tag the patch, then merge $BASE back into main so the fix is not lost
-               in the next release.
+            4. Tag the patch and build it with tools/release/release.sh, then merge $BASE
+               back into main so the fix is not lost in the next release.
           NEXT

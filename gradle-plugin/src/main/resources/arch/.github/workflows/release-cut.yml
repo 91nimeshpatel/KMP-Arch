@@ -42,4 +42,4 @@ jobs:
           git checkout -b "$BRANCH"
           git push origin "$BRANCH"
           echo "::notice::Cut $BRANCH from main at $(git rev-parse --short HEAD)"
-          echo "Next: fixes go to $BRANCH by pull request. When it is ready, tag v$VERSION.0."
+          echo "Next: fixes go to $BRANCH by pull request. When it is ready, tag v$VERSION.0 and build it with tools/release/release.sh."

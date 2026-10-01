@@ -10,7 +10,7 @@ modules, and the instructions an AI agent reads before it touches your code.
 
 ```kotlin
 // settings.gradle.kts
-plugins { id("io.github.91nimeshpatel.kmp.arch") version "1.0.2" }
+plugins { id("io.github.91nimeshpatel.kmp.arch") version "1.0.3" }
 ```
 
 ```bash
@@ -24,10 +24,11 @@ Run it again whenever you bump the version; it updates what it owns and leaves t
 
 | | |
 |---|---|
-| **`architecture-tests/`** | Seven rules that run as tests and fail the build: layer dependencies, feature isolation, locale parity, hard-coded strings, undocumented dependencies, undocumented platform seams, and a module diagram that must match the build files. |
+| **`architecture-tests/`** | Nine rules that run as tests and fail the build: layer dependencies, feature isolation, locale parity, hard-coded strings, undocumented dependencies, undocumented platform seams, a module diagram that must match the build files, every agent skill, hook and document wired in, and an iOS privacy manifest App Store Connect accepts. |
+| **`tools/release/release.sh`** | The only way to make a store build: from `release/X.Y` with the `vX.Y.Z` tag, after a passing E2E run, with version numbers from the tag, every artifact kept and published as a GitHub Release. |
 | **`tools/new-feature.py`** | Scaffolds a feature module — state, events, ViewModel, a screen split from its route, a string in every locale you ship, a unit test, an end-to-end scenario, and the three registrations a new module needs. |
 | **`.github/workflows/`** | `ci`, `release`, `release-cut`, `hotfix`, plus CODEOWNERS, a PR template and a branch ruleset. |
-| **`.claude/`** | Rules that load when an agent opens a matching file, four skills, a verifier subagent, and hooks that refuse to end a turn while the docs contradict the code. |
+| **`.claude/`** | Rules that load when an agent opens a matching file, five skills (including releasing a version), a verifier subagent, and hooks that refuse to end a turn while the docs contradict the code and block a store build outside the release script. |
 | **`CLAUDE.md`, `REVIEW.md`, `docs/`** | The contract, what a review looks for, and the documents the skills point to. |
 
 ## How it helps
@@ -47,14 +48,16 @@ reads your architecture and your conventions, not its own defaults.
 
 The rules run immediately, and **some will fail** — that is them working, not them broken.
 
-Seven of the twenty check documents that belong to *your* project and cannot be shipped with the
-plugin: `docs/ARCHITECTURE.md` describing your modules and the decisions behind them, and
-`docs/LIBRARIES.md` describing what each of your dependencies is for and what breaks on upgrade.
+Eight of the twenty-five check things that belong to *your* project and cannot be shipped with the
+plugin: `docs/ARCHITECTURE.md` describing your modules and the decisions behind them,
+`docs/LIBRARIES.md` describing what each of your dependencies is for and what breaks on upgrade, and
+the iOS privacy manifest `iosApp/iosApp/PrivacyInfo.xcprivacy` declaring what your app collects.
 Shipping one project's copies of those would be confidently wrong in every other project, so the
 rules ask you to write them and name exactly what is missing.
 
-The other thirteen — layering, feature isolation, hard-coded strings, the generated module diagram,
-rule references — pass immediately.
+The other seventeen — layering, feature isolation, hard-coded strings, the generated module diagram,
+rule references, agent wiring, the release script — pass immediately. A skill, hook or document of
+your own is listed in `.claude/project.md`, which the wiring check reads alongside `CLAUDE.md`.
 
 The architecture tests are a Gradle module, so they also need entries in your version catalog and an
 `include` in `settings.gradle.kts`. `adoptArch` prints the exact lines when they are absent.
