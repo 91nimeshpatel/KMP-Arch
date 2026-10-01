@@ -1,6 +1,7 @@
 .claude/agents/verifier.md
 .claude/hooks/catalog-changed.py
 .claude/hooks/docs-gate.py
+.claude/hooks/release-guard.py
 .claude/project.md
 .claude/rules/architecture.md
 .claude/rules/code-style.md
@@ -11,6 +12,7 @@
 .claude/skills/add-a-feature/SKILL.md
 .claude/skills/capture-intent/SKILL.md
 .claude/skills/change-a-dependency/SKILL.md
+.claude/skills/release-a-version/SKILL.md
 .claude/skills/write-a-spec/SKILL.md
 .github/CODEOWNERS
 .github/actions/setup-android/action.yml
@@ -24,14 +26,17 @@ CLAUDE.md
 MANIFEST
 REVIEW.md
 architecture-tests/build.gradle.kts
+architecture-tests/src/test/kotlin/AgentWiringTest.kt
 architecture-tests/src/test/kotlin/DocumentationIntegrityTest.kt
 architecture-tests/src/test/kotlin/LayerDependencyTest.kt
 architecture-tests/src/test/kotlin/LibraryPlaybookTest.kt
 architecture-tests/src/test/kotlin/LocalisationTest.kt
 architecture-tests/src/test/kotlin/ModuleGraphTest.kt
+architecture-tests/src/test/kotlin/PrivacyManifestTest.kt
 architecture-tests/src/test/kotlin/RuleReferenceTest.kt
 architecture-tests/src/test/kotlin/SeamDocumentationTest.kt
 docs/ADDING_A_FEATURE.md
+docs/RELEASE_PLAN.md
 docs/TESTING.md
 docs/intents/README.md
 docs/intents/TEMPLATE-spec.md
@@ -39,4 +44,5 @@ docs/intents/TEMPLATE.md
 tools/apply-branch-protection.sh
 tools/module-graph.py
 tools/new-feature.py
+tools/release/release.sh
 tools/test-new-feature.sh
