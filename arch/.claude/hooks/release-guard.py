@@ -15,7 +15,9 @@ import sys
 # command naming the script needs no exemption; exempting any command that mentions it would let
 # `tools/release/release.sh --help; xcodebuild archive …` through.
 STORE_BUILD = re.compile(
-    r"(xcodebuild\b[^\n]*\b(archive|-exportArchive)\b"
+    # No \b before -exportArchive: a word boundary never sits between a space and a hyphen, so
+    # `\b-exportArchive` let the export, the step that signs and uploads, straight through.
+    r"(xcodebuild\b[^\n]*(\barchive\b|-exportArchive\b)"
     r"|\bgradlew?\b[^\n]*\bbundle\w*Release\b"  # any project path or form: bundleRelease, -p androidApp
     r"|\bgradlew?\b[^\n]*\bassemble\w*Release\b"  # a store build only when signed: see UNSIGNED_CHECK
     r"|altool\b[^\n]*--upload"

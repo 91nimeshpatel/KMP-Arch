@@ -59,7 +59,9 @@ def problems(root: Path) -> list[str]:
 
 def main() -> int:
     payload = json.load(sys.stdin)
-    root = Path(payload.get("cwd", "."))
+    # The repository this hook belongs to, not the session's current directory: from a subfolder the
+    # current directory missed the documents and the code, and the turn ended unchecked.
+    root = Path(__file__).resolve().parents[2]
     found = problems(root)
     if not found:
         return 0

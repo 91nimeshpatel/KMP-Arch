@@ -129,7 +129,9 @@ class LocalisationTest {
         fun resourceModules(): List<File> =
             ROOT
                 .walkTopDown()
-                .onEnter { it.name != "build" && it.name != ".git" }
+                // Not the copies in other checkouts: the desktop app keeps a session's git worktree in
+                // .claude/worktrees, and its modules are not this build's.
+                .onEnter { it.name !in setOf("build", ".git", "worktrees") }
                 .filter { it.isDirectory && it.name == "composeResources" }
                 .toList()
 

@@ -204,6 +204,7 @@ checklist. Work through it and tick only what you actually checked:
 | changes the recipe for a new screen | `docs/ADDING_A_FEATURE.md` |
 | changes how a version is cut, tagged, built or released | `docs/RELEASE_PLAN.md`, `.claude/skills/release-a-version`, `tools/release/release.sh` |
 | adds a rule, skill or hook | `CLAUDE.md` — its table (rules, skills or hooks), and `.claude/settings.json` for a hook. Enforced by `AgentWiringTest`. |
+| changes what a hook blocks, allows or checks | its cases in `HookBehaviourTest`, both what it must catch and what it must let through |
 
 A document that has drifted is worse than no document: the next person trusts it, and it lies to
 them. If a change makes a document wrong and you cannot fix it now, say so in the pull request

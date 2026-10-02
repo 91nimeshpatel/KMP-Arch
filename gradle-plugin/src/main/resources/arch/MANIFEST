@@ -28,6 +28,7 @@ REVIEW.md
 architecture-tests/build.gradle.kts
 architecture-tests/src/test/kotlin/AgentWiringTest.kt
 architecture-tests/src/test/kotlin/DocumentationIntegrityTest.kt
+architecture-tests/src/test/kotlin/HookBehaviourTest.kt
 architecture-tests/src/test/kotlin/LayerDependencyTest.kt
 architecture-tests/src/test/kotlin/LibraryPlaybookTest.kt
 architecture-tests/src/test/kotlin/LocalisationTest.kt

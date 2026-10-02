@@ -10,7 +10,7 @@ modules, and the instructions an AI agent reads before it touches your code.
 
 ```kotlin
 // settings.gradle.kts
-plugins { id("io.github.91nimeshpatel.kmp.arch") version "1.0.3" }
+plugins { id("io.github.91nimeshpatel.kmp.arch") version "1.0.4" }
 ```
 
 ```bash
@@ -24,7 +24,7 @@ Run it again whenever you bump the version; it updates what it owns and leaves t
 
 | | |
 |---|---|
-| **`architecture-tests/`** | Nine rules that run as tests and fail the build: layer dependencies, feature isolation, locale parity, hard-coded strings, undocumented dependencies, undocumented platform seams, a module diagram that must match the build files, every agent skill, hook and document wired in, and an iOS privacy manifest App Store Connect accepts. |
+| **`architecture-tests/`** | Ten rules that run as tests and fail the build: layer dependencies, feature isolation, locale parity, hard-coded strings, undocumented dependencies, undocumented platform seams, a module diagram that must match the build files, every agent skill, hook and document wired in, hooks that block and allow what they claim, and an iOS privacy manifest App Store Connect accepts. |
 | **`tools/release/release.sh`** | The only way to make a store build: from `release/X.Y` with the `vX.Y.Z` tag, after a passing E2E run, with version numbers from the tag, every artifact kept and published as a GitHub Release. |
 | **`tools/new-feature.py`** | Scaffolds a feature module — state, events, ViewModel, a screen split from its route, a string in every locale you ship, a unit test, an end-to-end scenario, and the three registrations a new module needs. |
 | **`.github/workflows/`** | `ci`, `release`, `release-cut`, `hotfix`, plus CODEOWNERS, a PR template and a branch ruleset. |
@@ -48,14 +48,15 @@ reads your architecture and your conventions, not its own defaults.
 
 The rules run immediately, and **some will fail** — that is them working, not them broken.
 
-Eight of the twenty-five check things that belong to *your* project and cannot be shipped with the
+Nine of the twenty-eight check things that belong to *your* project and cannot be shipped with the
 plugin: `docs/ARCHITECTURE.md` describing your modules and the decisions behind them,
 `docs/LIBRARIES.md` describing what each of your dependencies is for and what breaks on upgrade, and
-the iOS privacy manifest `iosApp/iosApp/PrivacyInfo.xcprivacy` declaring what your app collects.
+the iOS privacy manifest `iosApp/iosApp/PrivacyInfo.xcprivacy` declaring what your app collects
+(one hook test runs the documents check on your project, so it waits for those documents too).
 Shipping one project's copies of those would be confidently wrong in every other project, so the
 rules ask you to write them and name exactly what is missing.
 
-The other seventeen — layering, feature isolation, hard-coded strings, the generated module diagram,
+The other nineteen — layering, feature isolation, hard-coded strings, the generated module diagram,
 rule references, agent wiring, the release script — pass immediately. A skill, hook or document of
 your own is listed in `.claude/project.md`, which the wiring check reads alongside `CLAUDE.md`.
 
