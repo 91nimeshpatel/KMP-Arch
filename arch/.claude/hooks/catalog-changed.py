@@ -20,7 +20,8 @@ def main() -> int:
     if not path.endswith(CATALOG):
         return 0
 
-    root = Path(payload.get("cwd", "."))
+    # The repository this hook belongs to; the session's current directory may be a subfolder.
+    root = Path(__file__).resolve().parents[2]
     catalog = (root / CATALOG).read_text(encoding="utf-8")
     playbook_file = root / PLAYBOOK
     playbook = playbook_file.read_text(encoding="utf-8") if playbook_file.is_file() else ""
